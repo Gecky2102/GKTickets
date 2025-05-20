@@ -1,0 +1,8 @@
+it/giankoyt/gktickets/database/DatabaseManager.class
+it/giankoyt/gktickets/utils/MessageManager.class
+it/giankoyt/gktickets/GKTickets.class
+it/giankoyt/gktickets/commands/TicketCommand.class
+it/giankoyt/gktickets/notifications/NotificationManager.class
+it/giankoyt/gktickets/utils/ConfigManager.class
+it/giankoyt/gktickets/models/Ticket.class
+it/giankoyt/gktickets/models/Reply.class

@@ -1,0 +1,8 @@
+/workspaces/GKTickets/src/main/java/it/giankoyt/gktickets/models/Reply.java
+/workspaces/GKTickets/src/main/java/it/giankoyt/gktickets/GKTickets.java
+/workspaces/GKTickets/src/main/java/it/giankoyt/gktickets/utils/MessageManager.java
+/workspaces/GKTickets/src/main/java/it/giankoyt/gktickets/models/Ticket.java
+/workspaces/GKTickets/src/main/java/it/giankoyt/gktickets/notifications/NotificationManager.java
+/workspaces/GKTickets/src/main/java/it/giankoyt/gktickets/database/DatabaseManager.java
+/workspaces/GKTickets/src/main/java/it/giankoyt/gktickets/commands/TicketCommand.java
+/workspaces/GKTickets/src/main/java/it/giankoyt/gktickets/utils/ConfigManager.java

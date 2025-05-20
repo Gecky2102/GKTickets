@@ -1,0 +1,66 @@
+# GKTickets - File dei messaggi
+# Puoi usare:
+#  - Colori con &[codice colore] (es: &a, &b, &c...)
+#  - PlaceholderAPI (se installato) 
+#  - Placeholders specifiche di GKTickets: 
+#    {id} - ID del ticket
+#    {player} - Nome del giocatore
+#    {description} - Descrizione del ticket
+#    {status} - Stato del ticket
+#    {created_at} - Data di creazione
+#    {message} - Messaggio della risposta
+
+prefix: "&8[&6GKTickets&8]"
+
+# Messaggi generali
+no-permission: "{prefix} &cNon hai il permesso per eseguire questo comando."
+player-only: "{prefix} &cQuesto comando può essere eseguito solo da un giocatore."
+ticket-not-found: "{prefix} &cTicket non trovato."
+ticket-already-closed: "{prefix} &cQuesto ticket è già chiuso."
+ticket-not-own: "{prefix} &cNon puoi interagire con un ticket che non ti appartiene."
+
+# Messaggi di creazione ticket
+ticket-create-usage: "{prefix} &cUtilizzo corretto: /ticket create <descrizione>"
+ticket-create-success: "{prefix} &aTicket creato con successo! ID: &e#{id}"
+ticket-create-error: "{prefix} &cErrore durante la creazione del ticket. Riprova più tardi."
+
+# Messaggi di lista ticket
+ticket-list-title: "{prefix} &7Lista dei ticket aperti:"
+ticket-list-personal-title: "{prefix} &7I tuoi ticket:"
+ticket-list-empty: "  &7Nessun ticket trovato."
+ticket-list-format: "  &e#{id} &7- {status_color}{status} &7- &f{player}: &7{description_short}"
+
+# Messaggi di info ticket
+ticket-info-usage: "{prefix} &cUtilizzo corretto: /ticket info <id>"
+ticket-info-title: "{prefix} &7Info ticket #{id}:"
+ticket-info-status: "  &7Stato: {status_color}{status}"
+ticket-info-creator: "  &7Creato da: &f{player}"
+ticket-info-date: "  &7Data: &f{created_at}"
+ticket-info-description: "  &7Descrizione: &f{description}"
+ticket-info-no-replies: "  &7Nessuna risposta."
+ticket-info-replies-title: "  &7Risposte:"
+ticket-info-reply-format: "    &e{player} &8({created_at})&7: &f{message}"
+
+# Messaggi di chiusura ticket
+ticket-close-usage: "{prefix} &cUtilizzo corretto: /ticket close <id>"
+ticket-close-success: "{prefix} &aTicket #{id} chiuso con successo."
+ticket-close-error: "{prefix} &cErrore durante la chiusura del ticket. Riprova più tardi."
+
+# Messaggi di risposta ai ticket
+ticket-reply-usage: "{prefix} &cUtilizzo corretto: /ticket reply <id> <messaggio>"
+ticket-reply-success: "{prefix} &aRisposta inviata con successo."
+ticket-reply-error: "{prefix} &cErrore durante l'invio della risposta. Riprova più tardi."
+
+# Notifiche
+notification-new-ticket: "{prefix} &aNuovo ticket (#{id}) da {player}!"
+notification-new-reply-staff: "{prefix} &a{player} ha risposto al ticket #{id}!"
+notification-new-reply-player: "{prefix} &a{player} ha risposto al tuo ticket #{id}!"
+notification-ticket-closed: "{prefix} &cIl tuo ticket #{id} è stato chiuso da {player}"
+
+# Messaggi di aiuto
+help-title: "{prefix} &7Comandi disponibili:"
+help-create: "  &e/ticket create <descrizione> &7- Crea un nuovo ticket"
+help-list: "  &e/ticket list &7- Visualizza i ticket aperti"
+help-info: "  &e/ticket info <id> &7- Visualizza i dettagli di un ticket"
+help-close: "  &e/ticket close <id> &7- Chiudi un ticket"
+help-reply: "  &e/ticket reply <id> <messaggio> &7- Rispondi a un ticket"

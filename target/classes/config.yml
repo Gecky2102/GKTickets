@@ -1,0 +1,49 @@
+# GKTickets - Configurazione
+
+# Impostazioni del database
+database:
+  # Tipo di database (supportato: sqlite)
+  type: sqlite
+  # Nome del file del database
+  name: tickets
+
+# Impostazioni dei ticket
+tickets:
+  # Impostazioni per la chiusura automatica dei ticket
+  auto-close:
+    # Abilita la chiusura automatica dei ticket inattivi
+    enabled: false
+    # Tempo in ore dopo il quale un ticket inattivo viene chiuso automaticamente
+    time: 72
+
+# Impostazioni delle notifiche
+notifications:
+  # Notifiche per lo staff
+  staff:
+    # Notifica lo staff quando viene creato un nuovo ticket
+    new-ticket: true
+    # Notifica lo staff quando viene aggiunta una risposta ad un ticket
+    new-reply: true
+
+  # Notifiche per i giocatori
+  player:
+    # Notifica al giocatore quando viene aggiunta una risposta al suo ticket
+    new-reply: true
+    # Notifica al giocatore quando il suo ticket viene chiuso
+    ticket-closed: true
+
+  # Impostazioni dei suoni
+  sound:
+    # Abilita i suoni per le notifiche
+    enabled: true
+    # Suono per i nuovi ticket
+    new-ticket: entity.experience_orb.pickup
+    # Suono per le nuove risposte
+    new-reply: entity.player.levelup
+
+# Permessi
+permissions:
+  # Impostazione di gestione ticket 
+  # Se true, i giocatori possono visualizzare e rispondere solo ai propri ticket
+  # Se false, i giocatori possono visualizzare e rispondere a qualsiasi ticket con il permesso appropriato
+  player-only-own-tickets: true
