@@ -6,7 +6,7 @@
 
     <groupId>it.giankoyt</groupId>
     <artifactId>GKTickets</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.2</version>
     <packaging>jar</packaging>
 
     <name>GKTickets</name>
@@ -85,6 +85,12 @@
             <artifactId>placeholderapi</artifactId>
             <version>2.11.5</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.googlecode.json-simple</groupId>
+            <artifactId>json-simple</artifactId>
+            <version>1.1.1</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 </project>

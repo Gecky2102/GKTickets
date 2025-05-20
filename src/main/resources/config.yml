@@ -9,12 +9,39 @@ database:
 
 # Impostazioni dei ticket
 tickets:
+  # Numero massimo di ticket aperti per utente (0 = illimitato)
+  max-per-user: 3
+  
   # Impostazioni per la chiusura automatica dei ticket
   auto-close:
     # Abilita la chiusura automatica dei ticket inattivi
     enabled: false
     # Tempo in ore dopo il quale un ticket inattivo viene chiuso automaticamente
     time: 72
+
+# Integrazione Discord
+discord:
+  # Abilita l'integrazione con Discord
+  enabled: false
+  # URL del webhook Discord
+  webhook-url: "https://discord.com/api/webhooks/your-webhook-url-here"
+  # Nome utente del bot che invia i messaggi
+  username: "GKTickets"
+  # URL dell'avatar del bot
+  avatar-url: "https://i.imgur.com/your-avatar.png"
+  # Eventi da loggare
+  log-events:
+    # Log alla creazione di un nuovo ticket
+    ticket-create: true
+    # Log alla chiusura di un ticket
+    ticket-close: true
+    # Log quando viene aggiunta una risposta
+    ticket-reply: true
+  # Colori degli embed per diversi tipi di eventi (esadecimale)
+  colors:
+    create: "#00FF00"  # Verde
+    reply: "#0099FF"   # Blu
+    close: "#FF0000"   # Rosso
 
 # Impostazioni delle notifiche
 notifications:

@@ -62,6 +62,10 @@ public class MessageManager {
     
     public String getMessage(String path) {
         String message = messagesConfig.getString(path, "Messaggio non trovato: " + path);
+        // Sostituisci il prefisso e il divisore prima di altri placeholder
+        String prefix = messagesConfig.getString("prefix", "&8[&6&lGK&e&lTickets&8]");
+        String divider = messagesConfig.getString("divider", "&8&m--------------------");
+        message = message.replace("{prefix}", prefix).replace("{divider}", divider);
         return ChatColor.translateAlternateColorCodes('&', message);
     }
     

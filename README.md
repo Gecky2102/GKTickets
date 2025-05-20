@@ -1,6 +1,8 @@
-# GKTickets
+# GKTickets v1.0.2
 
 Un plugin per Minecraft (1.21.4) che implementa un sistema di ticket tramite comandi, senza GUI, utilizzando SQLite per la memorizzazione dei dati.
+
+Creato da [GeckyDev](https://www.geckydev.me)
 
 ## 📋 Caratteristiche
 
@@ -8,9 +10,27 @@ Un plugin per Minecraft (1.21.4) che implementa un sistema di ticket tramite com
 - Database SQLite per la memorizzazione persistente
 - Notifiche interattive per lo staff e i giocatori
 - Supporto per PlaceholderAPI
+- Interfaccia grafica migliorata con colori e pulsanti interattivi
 - Messaggi e configurazioni altamente personalizzabili
 - Sistema di suoni per le notifiche
 - Permessi granulari per diverse funzionalità
+
+## 🔄 Changelog
+
+### Versione 1.0.2
+- Migliorata l'interfaccia grafica con colori e simboli
+- Aggiunti divisori per separare sezioni di contenuti
+- Migliorati pulsanti interattivi con icone intuitive
+- Risolto bug con il prefisso nei messaggi di notifica
+- Aggiunto riferimento al creatore www.geckydev.me
+- Migliorata formattazione dei messaggi
+
+### Versione 1.0.1
+- Corretti vari bug
+- Migliorata la stabilità
+
+### Versione 1.0
+- Rilascio iniziale
 
 ## 🔧 Requisiti
 

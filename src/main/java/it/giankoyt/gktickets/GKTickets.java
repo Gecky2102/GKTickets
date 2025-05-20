@@ -2,6 +2,7 @@ package it.giankoyt.gktickets;
 
 import it.giankoyt.gktickets.commands.TicketCommand;
 import it.giankoyt.gktickets.database.DatabaseManager;
+import it.giankoyt.gktickets.integrations.DiscordIntegration;
 import it.giankoyt.gktickets.notifications.NotificationManager;
 import it.giankoyt.gktickets.utils.ConfigManager;
 import it.giankoyt.gktickets.utils.MessageManager;
@@ -15,7 +16,9 @@ public final class GKTickets extends JavaPlugin {
     private NotificationManager notificationManager;
     private ConfigManager configManager;
     private MessageManager messageManager;
+    private DiscordIntegration discordIntegration;
     private boolean placeholderAPIEnabled = false;
+    private final String version = "1.0.2";
 
     @Override
     public void onEnable() {
@@ -23,6 +26,12 @@ public final class GKTickets extends JavaPlugin {
         if (!getDataFolder().exists()) {
             getDataFolder().mkdir();
         }
+        
+        // Mostra banner di avvio migliorato
+        getLogger().info("╔════════════════════════════╗");
+        getLogger().info("║      GKTickets v" + version + "      ║");
+        getLogger().info("║  Creato da: www.geckydev.me  ║");
+        getLogger().info("╚════════════════════════════╝");
         
         // Caricamento configurazione e messaggi
         this.configManager = new ConfigManager(this);
@@ -34,6 +43,12 @@ public final class GKTickets extends JavaPlugin {
         
         // Inizializzazione del notification manager
         this.notificationManager = new NotificationManager(this);
+        
+        // Inizializzazione dell'integrazione Discord
+        this.discordIntegration = new DiscordIntegration(this);
+        if (this.discordIntegration.isEnabled()) {
+            getLogger().info("Integrazione Discord abilitata!");
+        }
         
         // Hook PlaceholderAPI
         if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
@@ -77,5 +92,9 @@ public final class GKTickets extends JavaPlugin {
     
     public boolean isPlaceholderAPIEnabled() {
         return placeholderAPIEnabled;
+    }
+    
+    public DiscordIntegration getDiscordIntegration() {
+        return discordIntegration;
     }
 }

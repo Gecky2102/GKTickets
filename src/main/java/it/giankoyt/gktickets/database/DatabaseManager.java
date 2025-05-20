@@ -215,6 +215,25 @@ public class DatabaseManager {
         return replies;
     }
     
+    public int countOpenTicketsForUser(UUID playerUUID) {
+        String sql = "SELECT COUNT(*) FROM tickets WHERE player_uuid = ? AND status = 'OPEN'";
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, playerUUID.toString());
+            
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().severe("Errore durante il conteggio dei ticket aperti per l'utente: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
+        return 0;
+    }
+    
     private Ticket extractTicketFromResultSet(ResultSet rs) throws SQLException {
         return new Ticket(
             rs.getInt("id"),

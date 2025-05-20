@@ -1,9 +1,10 @@
 name: GKTickets
-version: '1.0'
+version: '1.0.2'
 main: it.giankoyt.gktickets.GKTickets
 api-version: '1.21'
-authors: [GiankoYT]
+authors: [Gecky2102]
 description: Sistema di ticket con SQLite e notifiche per Minecraft 1.21.4
+website: www.geckydev.me
 commands:
   ticket:
     description: Comando principale per la gestione dei ticket
@@ -16,6 +17,36 @@ permissions:
   gktickets.view:
     description: Permette di visualizzare i propri ticket
     default: true
+  gktickets.list:
+    description: Permette di visualizzare la lista dei ticket
+    default: true
+  gktickets.info:
+    description: Permette di visualizzare i dettagli dei ticket
+    default: true
+  gktickets.reply:
+    description: Permette di rispondere ai ticket
+    default: true
+  gktickets.close:
+    description: Permette di chiudere i ticket
+    default: true
+  gktickets.close.own:
+    description: Permette di chiudere solo i propri ticket
+    default: true
+  gktickets.close.others:
+    description: Permette di chiudere i ticket di altri giocatori
+    default: op
   gktickets.staff:
     description: Permette allo staff di gestire tutti i ticket
+    default: gktickets.staff
+    children:
+      gktickets.create: true
+      gktickets.view: true
+      gktickets.list: true
+      gktickets.info: true
+      gktickets.reply: true
+      gktickets.close: true
+      gktickets.close.own: true
+      gktickets.close.others: true
+  gktickets.admin:
+    description: Permette di utilizzare funzionalità amministrative
     default: op

@@ -1,4 +1,5 @@
 it/giankoyt/gktickets/database/DatabaseManager.class
+it/giankoyt/gktickets/integrations/DiscordIntegration.class
 it/giankoyt/gktickets/utils/MessageManager.class
 it/giankoyt/gktickets/GKTickets.class
 it/giankoyt/gktickets/commands/TicketCommand.class

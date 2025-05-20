@@ -31,6 +31,10 @@ public class ConfigManager {
     public String getDatabaseName() {
         return config.getString("database.name", "tickets");
     }
+    
+    public int getMaxTicketsPerUser() {
+        return config.getInt("tickets.max-per-user", 3);
+    }
 
     public boolean isAutoCloseEnabled() {
         return config.getBoolean("tickets.auto-close.enabled", false);
