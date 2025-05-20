@@ -10,6 +10,10 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.chat.ComponentBuilder;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -175,6 +179,37 @@ public class TicketCommand implements CommandExecutor, TabCompleter {
             for (Reply reply : replies) {
                 player.sendMessage("    §e" + reply.getPlayerName() + " §8(" + reply.getCreatedAt() + ")§7: §f" + reply.getMessage());
             }
+        }
+        
+        // Aggiungi pulsanti interattivi se il ticket è ancora aperto
+        if (ticket.isOpen()) {
+            // Invia i pulsanti solo come componenti di testo
+            TextComponent spacer = new TextComponent("  ");
+            
+            // Pulsante Rispondi
+            TextComponent replyButton = new TextComponent("§a[Rispondi]");
+            replyButton.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, 
+                    new ComponentBuilder("§7Clicca per rispondere al ticket").create()));
+            replyButton.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, 
+                    "/ticket reply " + ticket.getId() + " "));
+            
+            // Pulsante Chiudi (solo per lo staff o il creatore del ticket)
+            TextComponent closeButton = new TextComponent("§c[Chiudi]");
+            closeButton.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, 
+                    new ComponentBuilder("§7Clicca per chiudere il ticket").create()));
+            closeButton.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, 
+                    "/ticket close " + ticket.getId()));
+            
+            TextComponent buttonsMessage = new TextComponent("  ");
+            buttonsMessage.addExtra(replyButton);
+            
+            // Aggiungi il pulsante di chiusura solo per lo staff o il creatore del ticket
+            if (player.hasPermission("gktickets.staff") || ticket.getPlayerUuid().equals(player.getUniqueId())) {
+                buttonsMessage.addExtra(spacer);
+                buttonsMessage.addExtra(closeButton);
+            }
+            
+            player.spigot().sendMessage(buttonsMessage);
         }
     }
     

@@ -92,7 +92,13 @@ public class NotificationManager {
         Player ticketCreator = Bukkit.getPlayer(ticket.getPlayerUuid());
         if (ticketCreator != null && ticketCreator.isOnline() && !ticketCreator.equals(closer)) {
             message = messageManager.formatWithPlaceholders(ticketCreator, message);
-            ticketCreator.sendMessage(message);
+            
+            // Rendi la notifica cliccabile per visualizzare il ticket
+            TextComponent component = new TextComponent(message);
+            component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("§7Clicca per visualizzare il ticket").create()));
+            component.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ticket info " + ticket.getId()));
+            
+            ticketCreator.spigot().sendMessage(component);
         }
     }
     
