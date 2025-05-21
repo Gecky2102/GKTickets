@@ -688,4 +688,96 @@ public class DatabaseManager {
             e.printStackTrace();
         }
     }
+    
+    /**
+     * Ottiene le statistiche dei ticket
+     * @return Map con le statistiche
+     */
+    public Map<String, Object> getTicketStats() {
+        Map<String, Object> stats = new HashMap<>();
+        
+        try {
+            // Conteggio totale ticket
+            try (Statement stmt = connection.createStatement()) {
+                ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM tickets");
+                if (rs.next()) {
+                    stats.put("total", rs.getInt(1));
+                }
+            }
+            
+            // Conteggio ticket aperti
+            try (Statement stmt = connection.createStatement()) {
+                ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM tickets WHERE status = 'OPEN'");
+                if (rs.next()) {
+                    stats.put("open", rs.getInt(1));
+                }
+            }
+            
+            // Conteggio ticket chiusi
+            try (Statement stmt = connection.createStatement()) {
+                ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM tickets WHERE status = 'CLOSED'");
+                if (rs.next()) {
+                    stats.put("closed", rs.getInt(1));
+                }
+            }
+            
+            // Valutazione media
+            try (Statement stmt = connection.createStatement()) {
+                ResultSet rs = stmt.executeQuery(
+                    "SELECT AVG(rating) FROM ticket_feedback"
+                );
+                if (rs.next()) {
+                    double avgRating = rs.getDouble(1);
+                    if (!rs.wasNull()) {
+                        stats.put("avg_rating", String.format("%.1f", avgRating));
+                    } else {
+                        stats.put("avg_rating", "N/A");
+                    }
+                } else {
+                    stats.put("avg_rating", "N/A");
+                }
+            }
+            
+            // Distribuzione delle valutazioni
+            Map<Integer, Integer> ratingDistribution = new HashMap<>();
+            for (int i = 1; i <= 5; i++) {
+                ratingDistribution.put(i, 0);
+            }
+            
+            try (Statement stmt = connection.createStatement()) {
+                ResultSet rs = stmt.executeQuery(
+                    "SELECT rating, COUNT(*) FROM ticket_feedback GROUP BY rating"
+                );
+                while (rs.next()) {
+                    int rating = rs.getInt(1);
+                    int count = rs.getInt(2);
+                    ratingDistribution.put(rating, count);
+                }
+            }
+            stats.put("rating_distribution", ratingDistribution);
+            
+        } catch (SQLException e) {
+            plugin.getLogger().severe("Errore nel recupero delle statistiche: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
+        return stats;
+    }
+    
+    /**
+     * Formatta il tempo in minuti in una stringa leggibile
+     * @param minutes Minuti
+     * @return Tempo formattato
+     */
+    private String formatTime(double minutes) {
+        if (minutes < 60) {
+            return String.format("%.0f min", minutes);
+        } else if (minutes < 1440) {
+            double hours = minutes / 60;
+            return String.format("%.1f ore", hours);
+        } else {
+            double days = minutes / 1440;
+            return String.format("%.1f giorni", days);
+        }
+    }
 }

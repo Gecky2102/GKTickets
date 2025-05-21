@@ -25,7 +25,7 @@ public final class GKTickets extends JavaPlugin {
     private CategoryManager categoryManager;
     private VersionUtils versionUtils;
     private boolean placeholderAPIEnabled = false;
-    private final String version = "1.0.2";
+    private final String version = "1.0.3";
 
     @Override
     public void onEnable() {
@@ -102,6 +102,43 @@ public final class GKTickets extends JavaPlugin {
         }
         
         getLogger().info("GKTickets è stato disabilitato.");
+    }
+    
+    /**
+     * Ricarica solo il file di configurazione senza richiamare altri metodi
+     * Questo metodo è utilizzato da ConfigManager.reloadConfig()
+     */
+    public void reloadConfigFile() {
+        // Call only the super method without additional logic
+        super.reloadConfig();
+    }
+    
+    /**
+     * Ricarica la configurazione del plugin
+     */
+    @Override
+    public void reloadConfig() {
+        // First reload the base config file
+        super.reloadConfig();
+        
+        // Now reload each component
+        if (configManager != null) {
+            // We use getConfig() which gets the already reloaded config
+            // rather than triggering another reloadConfig cycle
+            configManager.loadConfig(); // Use loadConfig instead of reloadConfig
+        }
+        
+        // Ricarica i messaggi
+        if (messageManager != null) {
+            messageManager.loadMessages();
+        }
+        
+        // Ricarica le categorie
+        if (categoryManager != null) {
+            categoryManager.reloadCategories();
+        }
+        
+        getLogger().info("Configurazione ricaricata con successo.");
     }
     
     public DatabaseManager getDatabaseManager() {

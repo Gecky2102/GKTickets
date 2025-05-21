@@ -18,8 +18,13 @@ public class ConfigManager {
         this.config = plugin.getConfig();
     }
 
+    /**
+     * Ricarica la configurazione senza chiamare plugin.reloadConfig()
+     * per evitare ricorsione infinita
+     */
     public void reloadConfig() {
-        plugin.reloadConfig();
+        // Don't call plugin.reloadConfig() here as it causes infinite recursion
+        plugin.reloadConfigFile(); // Use our new method instead
         this.config = plugin.getConfig();
     }
 

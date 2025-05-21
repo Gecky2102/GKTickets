@@ -15,12 +15,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class CategoryManager {
 
     private final GKTickets plugin;
-    private final Map<String, TicketCategory> categories;
+    private Map<String, TicketCategory> categories;
     private File categoriesFile;
     private FileConfiguration categoriesConfig;
     
@@ -34,21 +33,27 @@ public class CategoryManager {
      * Carica le categorie dal file di configurazione
      */
     public void loadCategories() {
+        // Create a new HashMap to avoid any old references
+        categories = new HashMap<>();
+        
         categoriesFile = new File(plugin.getDataFolder(), "categories.yml");
         
-        // Crea il file se non esiste
+        // Create file if it doesn't exist
         if (!categoriesFile.exists()) {
             plugin.saveResource("categories.yml", false);
         }
         
+        // Load the configuration fresh from disk (don't use cached)
+        categoriesConfig = null;  // Reset to ensure we don't have old data
         categoriesConfig = YamlConfiguration.loadConfiguration(categoriesFile);
         
-        // Verifica che ci siano tutte le categorie predefinite
+        // Load default categories to ensure we have all needed keys
         InputStream defaultStream = plugin.getResource("categories.yml");
         if (defaultStream != null) {
             YamlConfiguration defaultConfig = YamlConfiguration.loadConfiguration(
                     new InputStreamReader(defaultStream));
             
+            // Make sure all default keys exist
             for (String key : defaultConfig.getKeys(true)) {
                 if (!categoriesConfig.contains(key)) {
                     categoriesConfig.set(key, defaultConfig.get(key));
@@ -62,10 +67,7 @@ public class CategoryManager {
             }
         }
         
-        // Pulisci le categorie esistenti
-        categories.clear();
-        
-        // Carica le categorie dal file
+        // Load the categories one by one
         ConfigurationSection categoriesSection = categoriesConfig.getConfigurationSection("categories");
         if (categoriesSection != null) {
             for (String categoryId : categoriesSection.getKeys(false)) {
@@ -82,7 +84,7 @@ public class CategoryManager {
             }
         }
         
-        // Se non ci sono categorie, crea almeno quella predefinita
+        // If no categories were found, create a default one
         if (categories.isEmpty()) {
             TicketCategory defaultCategory = new TicketCategory(
                 "general",
@@ -95,6 +97,23 @@ public class CategoryManager {
             categories.put("general", defaultCategory);
             plugin.getLogger().warning("Nessuna categoria trovata, creata categoria generale predefinita.");
         }
+    }
+    
+    /**
+     * Ricarica completamente le categorie dal file
+     */
+    public void reloadCategories() {
+        // Clear all categories first
+        categories.clear();
+        
+        // Force reload from disk
+        categoriesFile = new File(plugin.getDataFolder(), "categories.yml");
+        categoriesConfig = YamlConfiguration.loadConfiguration(categoriesFile);
+        
+        // Now load categories
+        loadCategories();
+        
+        plugin.getLogger().info("Categorie ricaricate: " + categories.size() + " categorie trovate");
     }
     
     /**

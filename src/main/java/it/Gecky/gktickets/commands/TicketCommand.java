@@ -88,6 +88,9 @@ public class TicketCommand implements CommandExecutor, TabCompleter {
             case "testdiscord":
                 handleTestDiscordCommand(player);
                 break;
+            case "reload":
+                handleReloadCommand(player);
+                break;
             default:
                 sendHelpMessage(player);
                 break;
@@ -690,6 +693,7 @@ public class TicketCommand implements CommandExecutor, TabCompleter {
                 subCommands.add("close");
                 subCommands.add("user");
                 subCommands.add("stats");
+                subCommands.add("reload");
             }
             
             for (String subCommand : subCommands) {
@@ -846,19 +850,101 @@ public class TicketCommand implements CommandExecutor, TabCompleter {
             return;
         }
         
-        // Implementazione segnaposto - questo dovrebbe essere espanso
+        // Ottieni le statistiche
+        Map<String, Object> stats = databaseManager.getTicketStats();
+        
+        // Formatta e mostra le statistiche
         player.sendMessage(plugin.getMessageManager().getMessage("stats-header"));
         
-        // Ottieni conteggi dei ticket
-        int totalTickets = 0;
-        int openTickets = 0;
-        int closedTickets = 0;
+        // Mostra conteggi ticket
+        player.sendMessage(plugin.getMessageManager().formatMessage(
+            "stats-tickets-total", 
+            Map.of("count", String.valueOf(stats.getOrDefault("total", 0)))
+        ));
+        player.sendMessage(plugin.getMessageManager().formatMessage(
+            "stats-tickets-open", 
+            Map.of("count", String.valueOf(stats.getOrDefault("open", 0)))
+        ));
+        player.sendMessage(plugin.getMessageManager().formatMessage(
+            "stats-tickets-closed", 
+            Map.of("count", String.valueOf(stats.getOrDefault("closed", 0)))
+        ));
         
-        // Esempio di visualizzazione delle statistiche sui conteggi dei ticket
-        player.sendMessage("§7Tickets totali: §e" + totalTickets);
-        player.sendMessage("§7Tickets aperti: §a" + openTickets);
-        player.sendMessage("§7Tickets chiusi: §c" + closedTickets);
+        // Mostra valutazione media
+        player.sendMessage(plugin.getMessageManager().formatMessage(
+            "stats-avg-rating", 
+            Map.of("rating", (String) stats.getOrDefault("avg_rating", "N/A"))
+        ));
+        
+        // Mostra distribuzione valutazioni
+        player.sendMessage(plugin.getMessageManager().getMessage("stats-rating-distribution"));
+        
+        @SuppressWarnings("unchecked")
+        Map<Integer, Integer> ratingDistribution = (Map<Integer, Integer>) stats.getOrDefault("rating_distribution", new HashMap<Integer, Integer>());
+        
+        if (ratingDistribution != null) {
+            int totalRatings = ratingDistribution.values().stream().mapToInt(Integer::intValue).sum();
+            if (totalRatings > 0) {
+                // Per ogni valutazione da 1 a 5
+                for (int stars = 1; stars <= 5; stars++) {
+                    int count = ratingDistribution.getOrDefault(stars, 0);
+                    
+                    // Calcola la percentuale
+                    int percentage = (totalRatings > 0) ? (count * 100 / totalRatings) : 0;
+                    
+                    // Costruisci la barra di progresso - FIX COLOR FORMATTING
+                    StringBuilder bar = new StringBuilder();
+                    int barLength = 10; // Lunghezza totale della barra
+                    int filledBars = (int) Math.round((double) percentage / 100 * barLength);
+                    
+                    for (int i = 0; i < filledBars; i++) {
+                        bar.append("§a|");  // Green filled bar with § prefix
+                    }
+                    for (int i = filledBars; i < barLength; i++) {
+                        bar.append("§7|");  // Gray empty bar with § prefix
+                    }
+                    
+                    // Create placeholders map with proper escaping for color codes
+                    Map<String, String> placeholders = new HashMap<>();
+                    placeholders.put("stars", String.valueOf(stars));
+                    placeholders.put("count", String.valueOf(count));
+                    placeholders.put("bar", ChatColor.translateAlternateColorCodes('§', bar.toString()));
+                    placeholders.put("percentage", String.valueOf(percentage));
+                    
+                    // Send formatted message
+                    String message = plugin.getMessageManager().formatMessage("stats-rating-bar", placeholders);
+                    player.sendMessage(message);
+                }
+            } else {
+                player.sendMessage("  §7Nessuna valutazione disponibile");
+            }
+        }
         
         player.sendMessage(plugin.getMessageManager().getMessage("stats-footer"));
+    }
+    
+    /**
+     * Gestisce il comando per ricaricare le configurazioni
+     */
+    private void handleReloadCommand(Player player) {
+        if (!player.hasPermission("gktickets.admin")) {
+            player.sendMessage(plugin.getMessageManager().getMessage("no-permission"));
+            return;
+        }
+        
+        try {
+            // Call only the main reloadConfig method
+            plugin.reloadConfig();
+            // Don't call plugin.getConfigManager().reloadConfig() here as it's already done in plugin.reloadConfig()
+            
+            // Force reference update for the category manager
+            this.categoryManager = plugin.getCategoryManager();
+            
+            player.sendMessage(plugin.getMessageManager().getMessage("reload-success"));
+        } catch (Exception e) {
+            player.sendMessage(plugin.getMessageManager().getMessage("reload-error"));
+            plugin.getLogger().severe("Errore durante il ricaricamento: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }

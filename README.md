@@ -1,6 +1,6 @@
 # GKTickets
 
-![Version](https://img.shields.io/badge/version-1.0.2-blue.svg)
+![Version](https://img.shields.io/badge/version-1.0.3-blue.svg)
 ![Minecraft](https://img.shields.io/badge/minecraft-1.8--1.20-green.svg)
 ![License](https://img.shields.io/badge/license-MIT-yellow.svg)
 
