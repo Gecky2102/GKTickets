@@ -1,148 +1,114 @@
-# GKTickets v1.0.2
+# GKTickets
 
-Un plugin per Minecraft (1.21.4) che implementa un sistema di ticket tramite comandi, senza GUI, utilizzando SQLite per la memorizzazione dei dati.
+![Version](https://img.shields.io/badge/version-1.0.2-blue.svg)
+![Minecraft](https://img.shields.io/badge/minecraft-1.8--1.20-green.svg)
+![License](https://img.shields.io/badge/license-MIT-yellow.svg)
 
-Creato da [GeckyDev](https://www.geckydev.me)
+A comprehensive ticket management system for Bukkit/Spigot Minecraft servers. GKTickets provides server administrators with powerful tools to handle player support requests efficiently.
 
-## 📋 Caratteristiche
+## 📋 Overview
 
-- Sistema di ticket completamente basato su comandi
-- Database SQLite per la memorizzazione persistente
-- Notifiche interattive per lo staff e i giocatori
-- Supporto per PlaceholderAPI
-- Interfaccia grafica migliorata con colori e pulsanti interattivi
-- Messaggi e configurazioni altamente personalizzabili
-- Sistema di suoni per le notifiche
-- Permessi granulari per diverse funzionalità
+GKTickets allows players to create support tickets that staff members can respond to through an easy-to-use in-game interface. The plugin tracks statistics and enables players to provide feedback on closed tickets, helping server administrators improve their support quality.
 
-## 🔄 Changelog
+## ✨ Features
 
-### Versione 1.0.2
-- Migliorata l'interfaccia grafica con colori e simboli
-- Aggiunti divisori per separare sezioni di contenuti
-- Migliorati pulsanti interattivi con icone intuitive
-- Risolto bug con il prefisso nei messaggi di notifica
-- Aggiunto riferimento al creatore www.geckydev.me
-- Migliorata formattazione dei messaggi
+- **Simple and Intuitive Interface** - Easy-to-use commands for both players and staff
+- **Complete Ticket Management** - Create, view, respond to, and close tickets all in-game
+- **Discord Integration** - Get notified in your Discord server when tickets are created, updated, or closed
+- **SQLite Database Storage** - All tickets and replies are securely stored in a database
+- **Feedback System** - Players can rate their support experience after ticket resolution
+- **Comprehensive Statistics** - Track response times and staff performance
+- **Permissions-Based Access** - Fine-grained control over who can do what
+- **PlaceholderAPI Support** - Use placeholders in messages
+- **Version Compatible** - Works with Minecraft 1.8 to 1.20
 
-### Versione 1.0.1
-- Corretti vari bug
-- Migliorata la stabilità
+## 📝 TODO List
 
-### Versione 1.0
-- Rilascio iniziale
+Future features planned for implementation:
 
-## 🔧 Requisiti
+- [ ] **Ticket Categories** - Allow users to categorize tickets (bug, question, suggestion)
+- [ ] **Staff Notes** - Private notes on tickets that only staff can see
+- [ ] **Auto-Close System** - Automatically close tickets that have been inactive for X days
+- [ ] **Blacklist System** - Prevent spam by limiting tickets from problematic users
+- [ ] **Ticket Archiving** - Move closed tickets to archive rather than just marking them closed
+- [ ] **Monthly Reports** - Generate periodic reports on ticket activity
+- [ ] **Staff Efficiency Metrics** - Track average resolution time per staff member
+- [ ] **User Satisfaction Tracking** - Advanced metrics on user feedback
+- [ ] **Staff Dashboard** - Command to see a performance overview of all staff members
 
-- Server Minecraft 1.21.4 (Spigot/Paper)
-- Java 17 o superiore
-- [PlaceholderAPI](https://www.spigotmc.org/resources/placeholderapi.6245/) (opzionale, per le placeholders)
+## 🔧 Commands
 
-## 🚀 Installazione
+| Command | Description |
+|---------|-------------|
+| `/ticket create <description>` | Create a new ticket |
+| `/ticket list` | List all open tickets (or your own) |
+| `/ticket info <id>` | View detailed information about a ticket |
+| `/ticket reply <id> <message>` | Reply to a ticket |
+| `/ticket close <id>` | Close a ticket |
+| `/ticket user <player>` | View tickets from a specific player |
+| `/ticket feedback <id> [rating]` | Give feedback on a closed ticket |
+| `/ticket stats` | View ticket system statistics |
 
-1. Scarica il file `.jar` dalla sezione release
-2. Posiziona il file nella cartella `plugins` del tuo server
-3. Riavvia il server o carica il plugin con un plugin manager
-4. I file di configurazione verranno generati automaticamente
+**Aliases**: All commands can also be used with `/tk` instead of `/ticket`.
 
-## 📝 Comandi
+## 🔒 Permissions
 
-| Comando | Descrizione | Permesso |
-|---------|-------------|----------|
-| `/ticket create <descrizione>` | Crea un nuovo ticket | gktickets.create |
-| `/ticket list` | Visualizza tutti i ticket aperti | gktickets.view |
-| `/ticket info <id>` | Mostra i dettagli di un ticket | gktickets.view |
-| `/ticket close <id>` | Chiude un ticket specifico | gktickets.staff |
-| `/ticket reply <id> <messaggio>` | Risponde a un ticket | gktickets.view |
+| Permission | Description |
+|------------|-------------|
+| `gktickets.create` | Permission to create tickets |
+| `gktickets.view` | Permission to view your own tickets |
+| `gktickets.list` | Permission to list tickets |
+| `gktickets.reply` | Permission to reply to tickets |
+| `gktickets.close.own` | Permission to close your own tickets |
+| `gktickets.close.others` | Permission to close tickets from other players |
+| `gktickets.feedback` | Permission to give feedback on closed tickets |
+| `gktickets.stats` | Permission to view ticket statistics |
+| `gktickets.staff` | All staff permissions (includes view, list, info, reply, close.others) |
+| `gktickets.admin` | All administrative permissions |
 
-## 🛡️ Permessi
+## 💾 Installation
 
-| Permesso | Descrizione | Default |
-|----------|-------------|---------|
-| gktickets.create | Permette di creare ticket | true |
-| gktickets.view | Permette di visualizzare i propri ticket | true |
-| gktickets.staff | Permette di gestire tutti i ticket | op |
+1. Download the latest version of GKTickets from [GitHub Releases](https://github.com/gecky2102/GKTickets/releases)
+2. Place the downloaded JAR file in your server's `plugins` folder
+3. Restart your server
+4. Edit the configuration file in `plugins/GKTickets/config.yml` as needed
+5. Use `/ticket` in-game to start using the plugin
 
-## ⚙️ Configurazione
+## ⚙️ Configuration
 
-Il plugin genera un file `config.yml` con tutte le impostazioni personalizzabili:
+The default configuration file includes:
 
 ```yaml
-# GKTickets - Configurazione
-
-# Impostazioni del database
+# Database configuration
 database:
-  # Tipo di database (supportato: sqlite)
-  type: sqlite
-  # Nome del file del database
-  name: tickets
+  type: sqlite  # Only SQLite is currently supported
 
-# Impostazioni dei ticket
+# Ticket settings
 tickets:
-  # Impostazioni per la chiusura automatica dei ticket
+  max-per-user: 3  # Maximum number of open tickets per player
   auto-close:
-    # Abilita la chiusura automatica dei ticket inattivi
     enabled: false
-    # Tempo in ore dopo il quale un ticket inattivo viene chiuso automaticamente
-    time: 72
+    time: 72       # Hours after which inactive tickets are closed
 
-# Impostazioni delle notifiche
-notifications:
-  # Notifiche per lo staff
-  staff:
-    # Notifica lo staff quando viene creato un nuovo ticket
-    new-ticket: true
-    # Notifica lo staff quando viene aggiunta una risposta ad un ticket
-    new-reply: true
-
-  # Notifiche per i giocatori
-  player:
-    # Notifica al giocatore quando viene aggiunta una risposta al suo ticket
-    new-reply: true
-    # Notifica al giocatore quando il suo ticket viene chiuso
-    ticket-closed: true
-
-  # Impostazioni dei suoni
-  sound:
-    # Abilita i suoni per le notifiche
-    enabled: true
-    # Suono per i nuovi ticket
-    new-ticket: entity.experience_orb.pickup
-    # Suono per le nuove risposte
-    new-reply: entity.player.levelup
-
-# Permessi
-permissions:
-  # Impostazione di gestione ticket 
-  # Se true, i giocatori possono visualizzare e rispondere solo ai propri ticket
-  # Se false, i giocatori possono visualizzare e rispondere a qualsiasi ticket con il permesso appropriato
-  player-only-own-tickets: true
+# Discord integration
+discord:
+  enabled: false
+  webhook-url: ""   # Your Discord webhook URL
+  
+# Feedback system
+feedback:
+  enabled: true
+  reminder-interval: 30  # Minutes between reminders
 ```
 
-## 💬 Messaggi Personalizzabili
+## 💡 Contributing
 
-Il plugin utilizza un file `messages.yml` che consente di personalizzare tutti i messaggi:
+Contributions are welcome! Feel free to submit issues and pull requests.
 
-- Supporto completo per i colori di Minecraft usando `&` come prefisso
-- Supporto per PlaceholderAPI
-- Placeholders specifiche di GKTickets come `{id}`, `{player}`, `{description}`, ecc.
+## 📄 License
 
-## 📋 Integrazione con PlaceholderAPI
+GKTickets is available under the MIT License. See the LICENSE file for more information.
 
-GKTickets si integra con PlaceholderAPI, permettendoti di usare qualsiasi placeholder nei messaggi. Se PlaceholderAPI è installato, verrà rilevato automaticamente.
+## 👤 Author
 
-## 🔄 Compilazione
-
-Per compilare il plugin da sorgente:
-
-1. Clona il repository
-2. Esegui `./compile.sh` o usa Maven direttamente con `mvn clean package`
-3. Il file JAR compilato sarà disponibile nella cartella `target`
-
-## 📄 Licenza
-
-GKTickets è rilasciato sotto licenza MIT. Sei libero di utilizzare, modificare e distribuire questo plugin secondo i termini di tale licenza.
-
-## 👥 Supporto
-
-Se hai bisogno di aiuto con il plugin, puoi aprire un issue su GitHub.
+Created with ❤️ by gecky2102.

@@ -1,8 +1,8 @@
-package it.Gecky.gktickets.notifications;
+package it.giankoyt.gktickets.notifications;
 
-import it.Gecky.gktickets.GKTickets;
-import it.Gecky.gktickets.models.Ticket;
-import it.Gecky.gktickets.utils.MessageManager;
+import it.giankoyt.gktickets.GKTickets;
+import it.giankoyt.gktickets.models.Ticket;
+import it.giankoyt.gktickets.utils.MessageManager;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;

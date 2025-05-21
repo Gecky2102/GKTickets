@@ -55,11 +55,6 @@ ticket-reply-usage: "{prefix} &cUtilizzo corretto: &7/ticket reply <id> <messagg
 ticket-reply-success: "{prefix} &aRisposta inviata con successo al ticket &f#&e{id}"
 ticket-reply-error: "{prefix} &cErrore durante l'invio della risposta. Riprova più tardi."
 
-# Messaggi per il comando user
-ticket-user-usage: "{prefix} &cUtilizzo corretto: &7/ticket user <nomeutente>"
-ticket-user-title: "{prefix} &e&lTicket di &f{player}&e:"
-ticket-user-not-found: "{prefix} &cNessun ticket trovato per &f{player}&c."
-
 # User command messages
 tickets-for-player-header: "{prefix} &eTutti i ticket di &6{player} &8(&7{count}&8)"
 ticket-list-item: "&8[&6#{id}&8] &7{status_color}{status} &8- &f{description_short}"
@@ -114,7 +109,6 @@ stats-footer: "{prefix} &8&m--------------------"
 help-title: "{divider}\n &e&lGKTickets &f- &7Comandi Disponibili\n{divider}"
 help-create: " &e/ticket create <descrizione> &8- &7Crea un nuovo ticket"
 help-list: " &e/ticket list &8- &7Visualizza i ticket aperti"
-help-user: " &e/ticket user <nomeutente> &8- &7Visualizza i ticket di un giocatore specifico"
 help-info: " &e/ticket info <id> &8- &7Visualizza i dettagli di un ticket"
 help-close: " &e/ticket close <id> &8- &7Chiudi un ticket"
 help-reply: " &e/ticket reply <id> <messaggio> &8- &7Rispondi a un ticket"

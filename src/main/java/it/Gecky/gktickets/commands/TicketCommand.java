@@ -5,7 +5,6 @@ import it.Gecky.gktickets.database.DatabaseManager;
 import it.Gecky.gktickets.models.Reply;
 import it.Gecky.gktickets.models.Ticket;
 import it.Gecky.gktickets.notifications.NotificationManager;
-
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -18,11 +17,11 @@ import net.md_5.bungee.api.chat.ComponentBuilder;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.Map;
 
 public class TicketCommand implements CommandExecutor, TabCompleter {
 
@@ -39,7 +38,7 @@ public class TicketCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) {
-            sender.sendMessage(plugin.getMessageManager().getMessage("player-only"));
+            sender.sendMessage("§cQuesto comando può essere eseguito solo da un giocatore.");
             return true;
         }
 
@@ -71,12 +70,6 @@ public class TicketCommand implements CommandExecutor, TabCompleter {
             case "user":
                 handleUserCommand(player, args);
                 break;
-            case "feedback":
-                handleFeedbackCommand(player, args);
-                break;
-            case "stats":
-                handleStatsCommand(player, args);
-                break;
             case "testdiscord":
                 handleTestDiscordCommand(player);
                 break;
@@ -86,45 +79,6 @@ public class TicketCommand implements CommandExecutor, TabCompleter {
         }
         
         return true;
-    }
-    
-    /**
-     * Invia un messaggio di aiuto al giocatore con tutti i comandi disponibili
-     * @param player Il giocatore a cui inviare il messaggio
-     */
-    private void sendHelpMessage(Player player) {
-        player.sendMessage(plugin.getMessageManager().getMessage("help-header"));
-        player.sendMessage(plugin.getMessageManager().getMessage("help-divider"));
-        
-        // Comandi base
-        player.sendMessage(plugin.getMessageManager().getMessage("help-create"));
-        player.sendMessage(plugin.getMessageManager().getMessage("help-list"));
-        player.sendMessage(plugin.getMessageManager().getMessage("help-info"));
-        player.sendMessage(plugin.getMessageManager().getMessage("help-reply"));
-        
-        // Comandi per chiudere i ticket
-        if (player.hasPermission("gktickets.close.own")) {
-            player.sendMessage(plugin.getMessageManager().getMessage("help-close-own"));
-        }
-        if (player.hasPermission("gktickets.close.others")) {
-            player.sendMessage(plugin.getMessageManager().getMessage("help-close-others"));
-        }
-        
-        // Comandi staff
-        if (player.hasPermission("gktickets.staff")) {
-            player.sendMessage(plugin.getMessageManager().getMessage("help-divider"));
-            player.sendMessage(plugin.getMessageManager().getMessage("help-staff-header"));
-            player.sendMessage(plugin.getMessageManager().getMessage("help-user"));
-            player.sendMessage(plugin.getMessageManager().getMessage("help-stats"));
-        }
-        
-        // Comandi per feedback
-        player.sendMessage(plugin.getMessageManager().getMessage("help-divider"));
-        player.sendMessage(plugin.getMessageManager().getMessage("help-feedback"));
-        
-        // Footer
-        player.sendMessage(plugin.getMessageManager().getMessage("help-divider"));
-        player.sendMessage(plugin.getMessageManager().getMessage("help-footer"));
     }
     
     private void handleCreateCommand(Player player, String[] args) {
@@ -268,104 +222,6 @@ public class TicketCommand implements CommandExecutor, TabCompleter {
         player.sendMessage(plugin.getMessageManager().getMessage("divider"));
     }
     
-    /**
-     * Gestisce il comando list quando eseguito dalla console
-     */
-    private void handleListCommandConsole(CommandSender sender, String[] args) {
-        if (!sender.hasPermission("gktickets.list") && !sender.hasPermission("gktickets.admin")) {
-            sender.sendMessage(plugin.getMessageManager().getMessage("no-permission"));
-            return;
-        }
-        
-        List<Ticket> tickets = databaseManager.getOpenTickets();
-        
-        // Invia l'header
-        String divider = plugin.getMessageManager().getMessage("divider");
-        sender.sendMessage(divider);
-        sender.sendMessage(plugin.getMessageManager().getMessage("ticket-list-title"));
-        
-        if (tickets.isEmpty()) {
-            sender.sendMessage(plugin.getMessageManager().getMessage("ticket-list-empty"));
-            sender.sendMessage(divider);
-            return;
-        }
-        
-        // Formato per la console: [#ID] STATO (GIOCATORE) - DESCRIZIONE
-        for (Ticket ticket : tickets) {
-            String statusColor = ticket.isOpen() ? "§a" : "§c";
-            String status = ticket.getStatus();
-            String shortDescription = ticket.getDescription().length() > 35 ? 
-                                   ticket.getDescription().substring(0, 35) + "..." : 
-                                   ticket.getDescription();
-                                   
-            Map<String, String> placeholders = new HashMap<>();
-            placeholders.put("id", String.valueOf(ticket.getId()));
-            placeholders.put("status_color", statusColor);
-            placeholders.put("status", status);
-            placeholders.put("player", ticket.getPlayerName());
-            placeholders.put("description_short", shortDescription);
-            
-            // Usa un formato semplice per la console
-            String ticketInfo = "§8[§6#" + ticket.getId() + "§8] " + statusColor + status + 
-                               " §7(" + ticket.getPlayerName() + ") - §f" + shortDescription;
-            
-            sender.sendMessage(ticketInfo);
-        }
-        
-        // Invia il divisore di chiusura
-        sender.sendMessage(divider);
-    }
-    
-    /**
-     * Gestisce il comando user quando eseguito dalla console
-     */
-    private void handleUserCommandConsole(CommandSender sender, String[] args) {
-        if (!sender.hasPermission("gktickets.staff") && !sender.hasPermission("gktickets.admin")) {
-            sender.sendMessage(plugin.getMessageManager().getMessage("no-permission"));
-            return;
-        }
-        
-        if (args.length != 2) {
-            sender.sendMessage(plugin.getMessageManager().getMessage("ticket-user-usage"));
-            return;
-        }
-        
-        String targetPlayerName = args[1];
-        List<Ticket> tickets = databaseManager.getPlayerTicketsByName(targetPlayerName);
-        
-        if (tickets.isEmpty()) {
-            Map<String, String> placeholders = new HashMap<>();
-            placeholders.put("player", targetPlayerName);
-            sender.sendMessage(plugin.getMessageManager().formatMessage("ticket-user-not-found", placeholders));
-            return;
-        }
-        
-        // Invia l'header con il divisore
-        sender.sendMessage(plugin.getMessageManager().getMessage("divider"));
-        
-        Map<String, String> titlePlaceholders = new HashMap<>();
-        titlePlaceholders.put("player", targetPlayerName);
-        sender.sendMessage(plugin.getMessageManager().formatMessage("ticket-user-title", titlePlaceholders));
-        
-        // Formato per la console: [#ID] STATO - DESCRIZIONE
-        for (Ticket ticket : tickets) {
-            String statusColor = ticket.isOpen() ? "§a" : "§c";
-            String status = ticket.getStatus();
-            String shortDescription = ticket.getDescription().length() > 35 ? 
-                                   ticket.getDescription().substring(0, 35) + "..." : 
-                                   ticket.getDescription();
-                                   
-            // Usa un formato semplice per la console
-            String ticketInfo = "§8[§6#" + ticket.getId() + "§8] " + statusColor + status + 
-                               " §7- §f" + shortDescription;
-                               
-            sender.sendMessage(ticketInfo);
-        }
-        
-        // Invia il divisore di chiusura
-        sender.sendMessage(plugin.getMessageManager().getMessage("divider"));
-    }
-    
     private void handleInfoCommand(Player player, String[] args) {
         if (!player.hasPermission("gktickets.info")) {
             player.sendMessage(plugin.getMessageManager().getMessage("no-permission"));
@@ -439,9 +295,6 @@ public class TicketCommand implements CommandExecutor, TabCompleter {
         }
         
         player.sendMessage(plugin.getMessageManager().getMessage("ticket-info-footer"));
-        
-        // Aggiorna lo stato di visualizzazione del ticket
-        databaseManager.markTicketAsViewed(ticketId, player);
         
         // Aggiungi pulsanti interattivi se il ticket è ancora aperto
         if (ticket.isOpen()) {
@@ -603,9 +456,6 @@ public class TicketCommand implements CommandExecutor, TabCompleter {
         }
     }
     
-    /**
-     * Gestisce il comando per testare l'integrazione Discord
-     */
     private void handleTestDiscordCommand(Player player) {
         if (!player.hasPermission("gktickets.admin")) {
             player.sendMessage(plugin.getMessageManager().getMessage("no-permission"));
@@ -632,17 +482,15 @@ public class TicketCommand implements CommandExecutor, TabCompleter {
         player.sendMessage("§8[§6GKTickets§8] §aTest Discord inviato! Controlla il canale Discord configurato.");
     }
     
-    /**
-     * Gestisce il comando per vedere i ticket di un giocatore specifico
-     */
     private void handleUserCommand(Player player, String[] args) {
-        if (!player.hasPermission("gktickets.staff")) {
+        // Verifica i permessi
+        if (!player.hasPermission("gktickets.staff") && !player.hasPermission("gktickets.admin")) {
             player.sendMessage(plugin.getMessageManager().getMessage("no-permission"));
             return;
         }
         
-        if (args.length < 2) {
-            player.sendMessage(plugin.getMessageManager().getMessage("user-command-usage"));
+        if (args.length != 2) {
+            player.sendMessage(plugin.getMessageManager().getMessage("ticket-user-usage"));
             return;
         }
         
@@ -650,180 +498,100 @@ public class TicketCommand implements CommandExecutor, TabCompleter {
         List<Ticket> tickets = databaseManager.getPlayerTicketsByName(targetPlayerName);
         
         if (tickets.isEmpty()) {
-            player.sendMessage(plugin.getMessageManager().formatMessage("no-tickets-found-for-player", 
-                    Map.of("player", targetPlayerName)));
+            Map<String, String> placeholders = new HashMap<>();
+            placeholders.put("player", targetPlayerName);
+            player.sendMessage(plugin.getMessageManager().formatMessage("ticket-user-not-found", placeholders));
             return;
         }
         
-        player.sendMessage(plugin.getMessageManager().formatMessage("tickets-for-player-header", 
-                Map.of("player", targetPlayerName, "count", String.valueOf(tickets.size()))));
+        // Invia l'header con il divisore
+        player.sendMessage(plugin.getMessageManager().getMessage("divider"));
         
-        // Mostra tutti i ticket del giocatore specifico
+        Map<String, String> titlePlaceholders = new HashMap<>();
+        titlePlaceholders.put("player", targetPlayerName);
+        player.sendMessage(plugin.getMessageManager().formatMessage("ticket-user-title", titlePlaceholders));
+        
         for (Ticket ticket : tickets) {
-            TextComponent component = new TextComponent(plugin.getMessageManager().getTicketMessage("ticket-list-item", ticket));
-            component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, 
-                    new ComponentBuilder("§7Clicca per visualizzare i dettagli").create()));
-            component.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ticket info " + ticket.getId()));
-            player.spigot().sendMessage(component);
-        }
-    }
-    
-    /**
-     * Gestisce il comando per dare feedback a un ticket chiuso
-     */
-    private void handleFeedbackCommand(Player player, String[] args) {
-        if (!player.hasPermission("gktickets.feedback")) {
-            player.sendMessage(plugin.getMessageManager().getMessage("no-permission"));
-            return;
-        }
-        
-        if (args.length < 2) {
-            player.sendMessage(plugin.getMessageManager().getMessage("ticket-feedback-usage"));
-            return;
-        }
-        
-        int ticketId;
-        try {
-            ticketId = Integer.parseInt(args[1]);
-        } catch (NumberFormatException e) {
-            player.sendMessage(plugin.getMessageManager().getMessage("ticket-not-found"));
-            return;
-        }
-        
-        // Verifica che il ticket esista, sia chiuso e appartenga al giocatore
-        Ticket ticket = databaseManager.getTicketById(ticketId);
-        if (ticket == null) {
-            player.sendMessage(plugin.getMessageManager().getMessage("ticket-not-found"));
-            return;
-        }
-        
-        if (!ticket.getPlayerUuid().equals(player.getUniqueId())) {
-            player.sendMessage(plugin.getMessageManager().getMessage("ticket-feedback-not-owner"));
-            return;
-        }
-        
-        if (ticket.isOpen()) {
-            player.sendMessage(plugin.getMessageManager().getMessage("ticket-feedback-still-open"));
-            return;
-        }
-        
-        // Se è specificato solo l'ID, mostra l'interfaccia di valutazione
-        if (args.length == 2) {
-            player.sendMessage(plugin.getMessageManager().getMessage("ticket-feedback-header"));
+            String statusColor = ticket.isOpen() ? "§a" : "§c";
+            String status = ticket.getStatus();
+            String shortDescription = ticket.getDescription().length() > 25 ? 
+                                      ticket.getDescription().substring(0, 25) + "..." : 
+                                      ticket.getDescription();
             
-            // Costruisci i pulsanti per le stelle
-            for (int rating = 1; rating <= 5; rating++) {
-                TextComponent star = new TextComponent(plugin.getMessageManager().formatMessage("ticket-feedback-star", 
-                        Map.of("rating", String.valueOf(rating))));
-                        
-                star.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, 
-                        new ComponentBuilder("§7Valuta questo ticket con " + rating + " " + (rating == 1 ? "stella" : "stelle")).create()));
-                star.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, 
-                        "/ticket feedback " + ticketId + " " + rating));
-                
-                player.spigot().sendMessage(star);
-            }
-            player.sendMessage(plugin.getMessageManager().getMessage("ticket-feedback-footer"));
-            return;
-        }
-        
-        // Processa la valutazione
-        int rating;
-        try {
-            rating = Integer.parseInt(args[2]);
-            if (rating < 1 || rating > 5) throw new NumberFormatException();
-        } catch (NumberFormatException e) {
-            player.sendMessage(plugin.getMessageManager().getMessage("ticket-feedback-invalid-rating"));
-            return;
-        }
-        
-        // Salva il commento se fornito
-        String comment = null;
-        if (args.length > 3) {
-            comment = String.join(" ", Arrays.copyOfRange(args, 3, args.length));
-        }
-        
-        // Salva il feedback nel database
-        boolean success = databaseManager.saveTicketFeedback(ticketId, player.getUniqueId(), rating, comment);
-        
-        if (success) {
-            player.sendMessage(plugin.getMessageManager().formatMessage("ticket-feedback-success", 
-                    Map.of("id", String.valueOf(ticketId), "rating", String.valueOf(rating))));
-        } else {
-            player.sendMessage(plugin.getMessageManager().getMessage("ticket-feedback-error"));
-        }
-    }
-    
-    /**
-     * Gestisce il comando per visualizzare le statistiche
-     */
-    private void handleStatsCommand(Player player, String[] args) {
-        if (!player.hasPermission("gktickets.stats")) {
-            player.sendMessage(plugin.getMessageManager().getMessage("no-permission"));
-            return;
-        }
-        
-        // Recupera le statistiche dal database
-        Map<String, Object> stats = databaseManager.getTicketStats();
-        
-        player.sendMessage(plugin.getMessageManager().getMessage("stats-header"));
-        
-        // Ticket aperti e chiusi
-        int totalTickets = (int) stats.getOrDefault("total_tickets", 0);
-        int openTickets = (int) stats.getOrDefault("open_tickets", 0);
-        int closedTickets = (int) stats.getOrDefault("closed_tickets", 0);
-        
-        player.sendMessage(plugin.getMessageManager().formatMessage("stats-tickets-total", 
-                Map.of("count", String.valueOf(totalTickets))));
-                
-        player.sendMessage(plugin.getMessageManager().formatMessage("stats-tickets-open", 
-                Map.of("count", String.valueOf(openTickets))));
-                
-        player.sendMessage(plugin.getMessageManager().formatMessage("stats-tickets-closed", 
-                Map.of("count", String.valueOf(closedTickets))));
-        
-        // Tempi medi
-        String avgResponseTime = (String) stats.getOrDefault("avg_response_time_formatted", "N/A");
-        String avgResolutionTime = (String) stats.getOrDefault("avg_resolution_time_formatted", "N/A");
-        
-        player.sendMessage(plugin.getMessageManager().formatMessage("stats-avg-response-time", 
-                Map.of("time", avgResponseTime)));
-                
-        player.sendMessage(plugin.getMessageManager().formatMessage("stats-avg-resolution-time", 
-                Map.of("time", avgResolutionTime)));
-        
-        // Valutazione media
-        double avgRating = (double) stats.getOrDefault("avg_rating", 0.0);
-        
-        player.sendMessage(plugin.getMessageManager().formatMessage("stats-avg-rating", 
-                Map.of("rating", String.valueOf(avgRating))));
-                
-        // Grafico a barre della distribuzione delle valutazioni
-        @SuppressWarnings("unchecked")
-        Map<Integer, Integer> ratingDistribution = (Map<Integer, Integer>) stats.getOrDefault("rating_distribution", new HashMap<>());
-        
-        player.sendMessage(plugin.getMessageManager().getMessage("stats-rating-distribution"));
-        
-        int totalRatings = ratingDistribution.values().stream().mapToInt(Integer::intValue).sum();
-        for (int i = 5; i >= 1; i--) {
-            int count = ratingDistribution.getOrDefault(i, 0);
-            double percentage = totalRatings > 0 ? ((double) count / totalRatings) * 100 : 0;
+            Map<String, String> placeholders = new HashMap<>();
+            placeholders.put("id", String.valueOf(ticket.getId()));
+            placeholders.put("status_color", statusColor);
+            placeholders.put("status", status);
+            placeholders.put("player", ticket.getPlayerName());
+            placeholders.put("description_short", shortDescription);
             
-            StringBuilder bar = new StringBuilder();
-            int barLength = (int) Math.round(percentage / 5); // Ogni carattere rappresenta il 5%
-            bar.append("§a");
-            for (int j = 0; j < barLength; j++) {
-                bar.append("█");
+            String ticketText = plugin.getMessageManager().formatMessage("ticket-list-format", placeholders);
+            
+            // Base text component
+            TextComponent ticketInfo = new TextComponent(ticketText + " ");
+            
+            // Pulsante Info con stile migliorato
+            TextComponent infoButton = new TextComponent("§9[§b?§9]");
+            infoButton.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, 
+                    new ComponentBuilder("§bClicca per vedere i dettagli del ticket").create()));
+            infoButton.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, 
+                    "/tk info " + ticket.getId()));
+            
+            // Spazio tra i pulsanti
+            TextComponent spacer = new TextComponent(" ");
+            
+            // Aggiungi i pulsanti al componente principale
+            ticketInfo.addExtra(spacer);
+            ticketInfo.addExtra(infoButton);
+            
+            // Aggiungi pulsante Risposta se il ticket è aperto
+            if (ticket.isOpen()) {
+                // Pulsante Risposta con stile migliorato
+                TextComponent replyButton = new TextComponent("§2[§a✉§2]");
+                replyButton.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, 
+                        new ComponentBuilder("§aClicca per rispondere al ticket").create()));
+                replyButton.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, 
+                        "/tk reply " + ticket.getId() + " "));
+                
+                ticketInfo.addExtra(spacer);
+                ticketInfo.addExtra(replyButton);
+                
+                // Pulsante Chiudi
+                TextComponent closeButton = new TextComponent("§4[§c✕§4]");
+                closeButton.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, 
+                        new ComponentBuilder("§cClicca per chiudere il ticket").create()));
+                closeButton.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, 
+                        "/tk close " + ticket.getId()));
+                
+                ticketInfo.addExtra(spacer);
+                ticketInfo.addExtra(closeButton);
             }
             
-            player.sendMessage(plugin.getMessageManager().formatMessage("stats-rating-bar", 
-                    Map.of("stars", String.valueOf(i), 
-                           "count", String.valueOf(count),
-                           "percentage", String.format("%.1f", percentage),
-                           "bar", bar.toString())));
+            // Invia il messaggio interattivo
+            player.spigot().sendMessage(ticketInfo);
         }
         
-        player.sendMessage(plugin.getMessageManager().getMessage("stats-footer"));
+        // Invia il divisore di chiusura
+        player.sendMessage(plugin.getMessageManager().getMessage("divider"));
+    }
+    
+    private void sendHelpMessage(Player player) {
+        player.sendMessage(plugin.getMessageManager().getMessage("help-title"));
+        player.sendMessage(plugin.getMessageManager().getMessage("help-create"));
+        player.sendMessage(plugin.getMessageManager().getMessage("help-list"));
+        
+        if (player.hasPermission("gktickets.staff") || player.hasPermission("gktickets.admin")) {
+            player.sendMessage(plugin.getMessageManager().getMessage("help-user"));
+        }
+        
+        player.sendMessage(plugin.getMessageManager().getMessage("help-info"));
+        
+        if (player.hasPermission("gktickets.staff")) {
+            player.sendMessage(plugin.getMessageManager().getMessage("help-close"));
+        }
+        
+        player.sendMessage(plugin.getMessageManager().getMessage("help-reply"));
+        player.sendMessage(plugin.getMessageManager().getMessage("help-footer"));
     }
 
     @Override
@@ -837,12 +605,10 @@ public class TicketCommand implements CommandExecutor, TabCompleter {
             subCommands.add("list");
             subCommands.add("info");
             subCommands.add("reply");
-            subCommands.add("feedback");
             
             if (sender.hasPermission("gktickets.staff") || sender.hasPermission("gktickets.admin")) {
                 subCommands.add("close");
-                subCommands.add("user");
-                subCommands.add("stats");
+                subCommands.add("user"); // Aggiungiamo il nuovo subcomando
             }
             
             for (String subCommand : subCommands) {
@@ -851,53 +617,33 @@ public class TicketCommand implements CommandExecutor, TabCompleter {
                 }
             }
         } else if (args.length == 2) {
-            // Secondo argomento - ID tickets o username
+            // Secondo argomento - ID tickets per info/close/reply o username per user
             if (args[0].equalsIgnoreCase("info") || 
                 args[0].equalsIgnoreCase("close") || 
                 args[0].equalsIgnoreCase("reply")) {
                 
+                List<Ticket> tickets;
                 if (sender instanceof Player) {
                     Player player = (Player) sender;
-                    List<Ticket> tickets;
-                    
                     if (player.hasPermission("gktickets.staff")) {
                         tickets = databaseManager.getOpenTickets();
                     } else {
                         tickets = databaseManager.getPlayerTickets(player.getUniqueId());
                     }
                     
-                    for (Ticket ticket : tickets) {
-                        if (String.valueOf(ticket.getId()).startsWith(args[1])) {
-                            completions.add(String.valueOf(ticket.getId()));
-                        }
-                    }
+                    completions = tickets.stream()
+                                        .map(ticket -> String.valueOf(ticket.getId()))
+                                        .filter(id -> id.startsWith(args[1]))
+                                        .collect(Collectors.toList());
                 }
             } else if (args[0].equalsIgnoreCase("user") && 
-                     (sender.hasPermission("gktickets.staff") || sender.hasPermission("gktickets.admin"))) {
+                      (sender.hasPermission("gktickets.staff") || sender.hasPermission("gktickets.admin"))) {
                 // Suggerimenti per i nomi dei giocatori online
                 String partial = args[1].toLowerCase();
-                plugin.getServer().getOnlinePlayers().forEach(onlinePlayer -> {
+                for (Player onlinePlayer : plugin.getServer().getOnlinePlayers()) {
                     if (onlinePlayer.getName().toLowerCase().startsWith(partial)) {
                         completions.add(onlinePlayer.getName());
                     }
-                });
-            } else if (args[0].equalsIgnoreCase("feedback")) {
-                // Suggerisce i ticket chiusi del giocatore che non hanno ancora un feedback
-                if (sender instanceof Player) {
-                    Player player = (Player) sender;
-                    List<Ticket> pendingFeedback = databaseManager.getPendingFeedbackTickets(player.getUniqueId());
-                    for (Ticket ticket : pendingFeedback) {
-                        if (String.valueOf(ticket.getId()).startsWith(args[1])) {
-                            completions.add(String.valueOf(ticket.getId()));
-                        }
-                    }
-                }
-            }
-        } else if (args.length == 3 && args[0].equalsIgnoreCase("feedback")) {
-            // Suggerisci le valutazioni da 1 a 5
-            for (int i = 1; i <= 5; i++) {
-                if (String.valueOf(i).startsWith(args[2])) {
-                    completions.add(String.valueOf(i));
                 }
             }
         }

@@ -74,9 +74,3 @@ permissions:
   # Se true, i giocatori possono visualizzare e rispondere solo ai propri ticket
   # Se false, i giocatori possono visualizzare e rispondere a qualsiasi ticket con il permesso appropriato
   player-only-own-tickets: true
-
-# Configurazioni per i feedback
-feedback:
-  enabled: true
-  # Intervallo in minuti tra i promemoria feedback (0 per disabilitare)
-  reminder-interval: 30
