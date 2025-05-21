@@ -1,77 +1,51 @@
 name: GKTickets
-version: 1.0.2
+version: '1.0.2'
 main: it.Gecky.gktickets.GKTickets
-api-version: 1.13
-softdepend: [PlaceholderAPI]
-authors: [gecky2102]
-description: A simple ticket system plugin for Bukkit/Spigot servers
-
+authors: [Gecky2102]
+description: Sistema di ticket con SQLite e notifiche per Minecraft 1.8-1.21
+website: www.geckydev.me
 commands:
   ticket:
     description: Comando principale per la gestione dei ticket
-    aliases: [tk]
     usage: /ticket <create|list|info|close|reply> [argomenti]
-
+    aliases: [tickets, tk]
 permissions:
-  gktickets.*:
-    description: Accesso a tutti i comandi e funzionalità di GKTickets
+  gktickets.create:
+    description: Permette di creare ticket
+    default: true
+  gktickets.view:
+    description: Permette di visualizzare i propri ticket
+    default: true
+  gktickets.list:
+    description: Permette di visualizzare la lista dei ticket
+    default: true
+  gktickets.info:
+    description: Permette di visualizzare i dettagli dei ticket
+    default: true
+  gktickets.reply:
+    description: Permette di rispondere ai ticket
+    default: true
+  gktickets.close:
+    description: Permette di chiudere i ticket
+    default: true
+  gktickets.close.own:
+    description: Permette di chiudere solo i propri ticket
+    default: true
+  gktickets.close.others:
+    description: Permette di chiudere i ticket di altri giocatori
+    default: op
+  gktickets.staff:
+    description: Permette allo staff di gestire tutti i ticket
     default: op
     children:
-      gktickets.staff: true
-      gktickets.admin: true
       gktickets.create: true
       gktickets.view: true
       gktickets.list: true
       gktickets.info: true
+      gktickets.reply: true
       gktickets.close: true
       gktickets.close.own: true
       gktickets.close.others: true
-      gktickets.reply: true
-  
-  gktickets.staff:
-    description: Accesso alle funzionalità di staff
-    default: op
-    children:
-      gktickets.view: true
-      gktickets.list: true
-      gktickets.info: true
-      gktickets.close.others: true
-      gktickets.reply: true
-  
   gktickets.admin:
-    description: Accesso alle funzionalità di amministrazione
+    description: Permette di utilizzare funzionalità amministrative
     default: op
-    
-  gktickets.create:
-    description: Permesso per creare ticket
-    default: true
-    
-  gktickets.view:
-    description: Permesso per visualizzare i propri ticket
-    default: true
-    
-  gktickets.list:
-    description: Permesso per elencare ticket
-    default: true
-    
-  gktickets.info:
-    description: Permesso per visualizzare informazioni dettagliate sui ticket
-    default: true
-    
-  gktickets.close:
-    description: Permesso di base per chiudere i ticket
-    default: false
-    children:
-      gktickets.close.own: true
-      
-  gktickets.close.own:
-    description: Permesso per chiudere i propri ticket
-    default: true
-    
-  gktickets.close.others:
-    description: Permesso per chiudere i ticket di altri giocatori
-    default: op
-    
-  gktickets.reply:
-    description: Permesso per rispondere ai ticket
-    default: true

@@ -1,9 +1,8 @@
 name: GKTickets
 version: '1.0.2'
-main: it.giankoyt.gktickets.GKTickets
-api-version: '1.21'
+main: it.Gecky.gktickets.GKTickets
 authors: [Gecky2102]
-description: Sistema di ticket con SQLite e notifiche per Minecraft 1.21.4
+description: Sistema di ticket con SQLite e notifiche per Minecraft 1.8-1.21
 website: www.geckydev.me
 commands:
   ticket:
@@ -37,7 +36,7 @@ permissions:
     default: op
   gktickets.staff:
     description: Permette allo staff di gestire tutti i ticket
-    default: gktickets.staff
+    default: op
     children:
       gktickets.create: true
       gktickets.view: true

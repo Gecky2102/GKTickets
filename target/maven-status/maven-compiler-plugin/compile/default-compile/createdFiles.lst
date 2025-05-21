@@ -8,7 +8,9 @@ it/Gecky/gktickets/database/DatabaseManager.class
 it/Gecky/gktickets/models/Reply.class
 it/Gecky/gktickets/utils/VersionUtils.class
 it/Gecky/gktickets/integrations/DiscordIntegration.class
+it/Gecky/gktickets/categories/TicketCategory.class
 it/Gecky/gktickets/GKTickets.class
+it/Gecky/gktickets/categories/CategoryManager.class
 it/Gecky/gktickets/notifications/NotificationManager.class
 it/Gecky/gktickets/listeners/JoinListener$1.class
 it/Gecky/gktickets/tasks/FeedbackReminderTask.class

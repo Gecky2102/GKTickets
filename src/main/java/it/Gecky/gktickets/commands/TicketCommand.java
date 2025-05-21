@@ -5,11 +5,15 @@ import it.Gecky.gktickets.database.DatabaseManager;
 import it.Gecky.gktickets.models.Reply;
 import it.Gecky.gktickets.models.Ticket;
 import it.Gecky.gktickets.notifications.NotificationManager;
+import it.Gecky.gktickets.categories.CategoryManager;
+import it.Gecky.gktickets.categories.TicketCategory;
+
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
+import org.bukkit.ChatColor;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -17,28 +21,30 @@ import net.md_5.bungee.api.chat.ComponentBuilder;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.HashMap;
-import java.util.Map;
 
 public class TicketCommand implements CommandExecutor, TabCompleter {
 
     private final GKTickets plugin;
     private final DatabaseManager databaseManager;
     private final NotificationManager notificationManager;
+    private CategoryManager categoryManager;
 
     public TicketCommand(GKTickets plugin) {
         this.plugin = plugin;
         this.databaseManager = plugin.getDatabaseManager();
         this.notificationManager = plugin.getNotificationManager();
+        this.categoryManager = plugin.getCategoryManager();
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) {
-            sender.sendMessage("§cQuesto comando può essere eseguito solo da un giocatore.");
+            sender.sendMessage(plugin.getMessageManager().getMessage("player-only"));
             return true;
         }
 
@@ -55,6 +61,9 @@ public class TicketCommand implements CommandExecutor, TabCompleter {
             case "create":
                 handleCreateCommand(player, args);
                 break;
+            case "categories":
+                handleCategoriesCommand(player);
+                break;
             case "list":
                 handleListCommand(player);
                 break;
@@ -70,6 +79,12 @@ public class TicketCommand implements CommandExecutor, TabCompleter {
             case "user":
                 handleUserCommand(player, args);
                 break;
+            case "feedback":
+                handleFeedbackCommand(player, args);
+                break;
+            case "stats":
+                handleStatsCommand(player, args);
+                break;
             case "testdiscord":
                 handleTestDiscordCommand(player);
                 break;
@@ -81,6 +96,29 @@ public class TicketCommand implements CommandExecutor, TabCompleter {
         return true;
     }
     
+    /**
+     * Gestisce il comando per visualizzare le categorie disponibili
+     */
+    private void handleCategoriesCommand(Player player) {
+        if (!player.hasPermission("gktickets.create")) {
+            player.sendMessage(plugin.getMessageManager().getMessage("no-permission"));
+            return;
+        }
+        
+        player.sendMessage(plugin.getMessageManager().getMessage("category-list-header"));
+        
+        List<String> availableCategories = categoryManager.getAvailableCategories(player);
+        for (String categoryId : availableCategories) {
+            TicketCategory category = categoryManager.getCategory(categoryId);
+            if (category != null) {
+                Map<String, String> placeholders = new HashMap<>();
+                placeholders.put("category", category.getFormattedNameWithIcon());
+                placeholders.put("description", category.getDescription());
+                player.sendMessage(plugin.getMessageManager().formatMessage("category-list-item", placeholders));
+            }
+        }
+    }
+    
     private void handleCreateCommand(Player player, String[] args) {
         if (!player.hasPermission("gktickets.create")) {
             player.sendMessage(plugin.getMessageManager().getMessage("no-permission"));
@@ -88,7 +126,7 @@ public class TicketCommand implements CommandExecutor, TabCompleter {
         }
         
         if (args.length < 2) {
-            player.sendMessage(plugin.getMessageManager().getMessage("ticket-create-usage"));
+            player.sendMessage(plugin.getMessageManager().getMessage("ticket-create-usage-with-category"));
             return;
         }
         
@@ -104,14 +142,59 @@ public class TicketCommand implements CommandExecutor, TabCompleter {
             }
         }
         
-        // Combina tutti gli argomenti dopo "create" in una descrizione
-        String description = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
+        // Verifica se il primo argomento è una categoria
+        String categoryId = "general"; // Categoria predefinita
+        String description;
         
-        int ticketId = databaseManager.createTicket(player, description);
+        if (categoryManager != null && categoryManager.categoryExists(args[1])) {
+            // Il primo argomento è una categoria valida
+            categoryId = args[1].toLowerCase();
+            
+            // Verifica se il giocatore può usare questa categoria
+            if (!categoryManager.canUseCategory(player, categoryId)) {
+                player.sendMessage(plugin.getMessageManager().getMessage("category-no-permission"));
+                return;
+            }
+            
+            // Verifica che ci sia una descrizione
+            if (args.length < 3) {
+                player.sendMessage(plugin.getMessageManager().getMessage("ticket-create-usage-with-category"));
+                return;
+            }
+            
+            // Combina tutti gli argomenti dopo la categoria in una descrizione
+            description = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
+        } else {
+            // Non è stata specificata una categoria, usa la descrizione direttamente
+            description = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
+        }
+        
+        // Crea il ticket con la categoria specificata
+        int ticketId;
+        if (categoryManager != null) {
+            ticketId = databaseManager.createTicket(player, categoryId, description);
+        } else {
+            ticketId = databaseManager.createTicket(player, description);
+        }
+        
         if (ticketId != -1) {
+            String categoryName = categoryId;
+            if (categoryManager != null) {
+                TicketCategory category = categoryManager.getCategory(categoryId);
+                if (category != null) {
+                    categoryName = category.getFormattedNameWithIcon();
+                }
+            }
+            
             Map<String, String> placeholders = new HashMap<>();
             placeholders.put("id", String.valueOf(ticketId));
-            player.sendMessage(plugin.getMessageManager().formatMessage("ticket-create-success", placeholders));
+            placeholders.put("category", categoryName);
+            
+            if (categoryManager != null) {
+                player.sendMessage(plugin.getMessageManager().formatMessage("ticket-create-success-with-category", placeholders));
+            } else {
+                player.sendMessage(plugin.getMessageManager().formatMessage("ticket-create-success", placeholders));
+            }
             
             // Notifica allo staff
             Ticket newTicket = databaseManager.getTicketById(ticketId);
@@ -229,7 +312,7 @@ public class TicketCommand implements CommandExecutor, TabCompleter {
         }
         
         if (args.length != 2) {
-            player.sendMessage("§cUtilizzo corretto: /ticket info <id>");
+            player.sendMessage("Utilizzo corretto: /ticket info <id>");
             return;
         }
         
@@ -237,20 +320,20 @@ public class TicketCommand implements CommandExecutor, TabCompleter {
         try {
             ticketId = Integer.parseInt(args[1]);
         } catch (NumberFormatException e) {
-            player.sendMessage("§8[§6GKTickets§8] §cL'ID del ticket deve essere un numero.");
+            player.sendMessage("L'ID del ticket deve essere un numero.");
             return;
         }
         
         Ticket ticket = databaseManager.getTicketById(ticketId);
         
         if (ticket == null) {
-            player.sendMessage("§8[§6GKTickets§8] §cTicket non trovato.");
+            player.sendMessage("Ticket non trovato.");
             return;
         }
         
         // Verifica se il giocatore può visualizzare questo ticket
         if (!player.hasPermission("gktickets.staff") && !ticket.getPlayerUuid().equals(player.getUniqueId())) {
-            player.sendMessage("§8[§6GKTickets§8] §cNon puoi visualizzare questo ticket.");
+            player.sendMessage("Non puoi visualizzare questo ticket.");
             return;
         }
         
@@ -430,7 +513,9 @@ public class TicketCommand implements CommandExecutor, TabCompleter {
         
         String message = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
         
+        // Fix: Change this line to handle boolean return type correctly
         boolean success = databaseManager.addReply(ticketId, player, message);
+        
         if (success) {
             Map<String, String> placeholders = new HashMap<>();
             placeholders.put("id", String.valueOf(ticketId));
@@ -461,7 +546,6 @@ public class TicketCommand implements CommandExecutor, TabCompleter {
             player.sendMessage(plugin.getMessageManager().getMessage("no-permission"));
             return;
         }
-        
         if (!plugin.getDiscordIntegration().isEnabled()) {
             player.sendMessage("§8[§6GKTickets§8] §cL'integrazione Discord non è abilitata. Controllare la configurazione.");
             return;
@@ -471,7 +555,6 @@ public class TicketCommand implements CommandExecutor, TabCompleter {
         Ticket testTicket = new Ticket(
             9999,
             player.getUniqueId(),
-            player.getName(),
             "Questo è un ticket di test per Discord",
             "OPEN",
             new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date())
@@ -504,7 +587,6 @@ public class TicketCommand implements CommandExecutor, TabCompleter {
             return;
         }
         
-        // Invia l'header con il divisore
         player.sendMessage(plugin.getMessageManager().getMessage("divider"));
         
         Map<String, String> titlePlaceholders = new HashMap<>();
@@ -515,8 +597,8 @@ public class TicketCommand implements CommandExecutor, TabCompleter {
             String statusColor = ticket.isOpen() ? "§a" : "§c";
             String status = ticket.getStatus();
             String shortDescription = ticket.getDescription().length() > 25 ? 
-                                      ticket.getDescription().substring(0, 25) + "..." : 
-                                      ticket.getDescription();
+                                     ticket.getDescription().substring(0, 25) + "..." : 
+                                     ticket.getDescription();
             
             Map<String, String> placeholders = new HashMap<>();
             placeholders.put("id", String.valueOf(ticket.getId()));
@@ -537,14 +619,10 @@ public class TicketCommand implements CommandExecutor, TabCompleter {
             infoButton.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, 
                     "/tk info " + ticket.getId()));
             
-            // Spazio tra i pulsanti
-            TextComponent spacer = new TextComponent(" ");
-            
             // Aggiungi i pulsanti al componente principale
-            ticketInfo.addExtra(spacer);
             ticketInfo.addExtra(infoButton);
             
-            // Aggiungi pulsante Risposta se il ticket è aperto
+            // Aggiungi pulsante Risposta se il ticket è aperto ? 
             if (ticket.isOpen()) {
                 // Pulsante Risposta con stile migliorato
                 TextComponent replyButton = new TextComponent("§2[§a✉§2]");
@@ -552,8 +630,6 @@ public class TicketCommand implements CommandExecutor, TabCompleter {
                         new ComponentBuilder("§aClicca per rispondere al ticket").create()));
                 replyButton.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, 
                         "/tk reply " + ticket.getId() + " "));
-                
-                ticketInfo.addExtra(spacer);
                 ticketInfo.addExtra(replyButton);
                 
                 // Pulsante Chiudi
@@ -562,8 +638,6 @@ public class TicketCommand implements CommandExecutor, TabCompleter {
                         new ComponentBuilder("§cClicca per chiudere il ticket").create()));
                 closeButton.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, 
                         "/tk close " + ticket.getId()));
-                
-                ticketInfo.addExtra(spacer);
                 ticketInfo.addExtra(closeButton);
             }
             
@@ -571,7 +645,6 @@ public class TicketCommand implements CommandExecutor, TabCompleter {
             player.spigot().sendMessage(ticketInfo);
         }
         
-        // Invia il divisore di chiusura
         player.sendMessage(plugin.getMessageManager().getMessage("divider"));
     }
     
@@ -584,6 +657,8 @@ public class TicketCommand implements CommandExecutor, TabCompleter {
             player.sendMessage(plugin.getMessageManager().getMessage("help-user"));
         }
         
+        player.sendMessage(plugin.getMessageManager().getMessage("divider"));
+        
         player.sendMessage(plugin.getMessageManager().getMessage("help-info"));
         
         if (player.hasPermission("gktickets.staff")) {
@@ -591,7 +666,10 @@ public class TicketCommand implements CommandExecutor, TabCompleter {
         }
         
         player.sendMessage(plugin.getMessageManager().getMessage("help-reply"));
-        player.sendMessage(plugin.getMessageManager().getMessage("help-footer"));
+        
+        if (player.hasPermission("gktickets.admin")) {
+            player.sendMessage(plugin.getMessageManager().getMessage("help-footer"));
+        }
     }
 
     @Override
@@ -605,10 +683,13 @@ public class TicketCommand implements CommandExecutor, TabCompleter {
             subCommands.add("list");
             subCommands.add("info");
             subCommands.add("reply");
+            subCommands.add("feedback");
+            subCommands.add("categories");
             
             if (sender.hasPermission("gktickets.staff") || sender.hasPermission("gktickets.admin")) {
                 subCommands.add("close");
-                subCommands.add("user"); // Aggiungiamo il nuovo subcomando
+                subCommands.add("user");
+                subCommands.add("stats");
             }
             
             for (String subCommand : subCommands) {
@@ -617,14 +698,27 @@ public class TicketCommand implements CommandExecutor, TabCompleter {
                 }
             }
         } else if (args.length == 2) {
-            // Secondo argomento - ID tickets per info/close/reply o username per user
-            if (args[0].equalsIgnoreCase("info") || 
-                args[0].equalsIgnoreCase("close") || 
-                args[0].equalsIgnoreCase("reply")) {
+            if (args[0].equalsIgnoreCase("create") && sender instanceof Player) {
+                // Suggerisci le categorie disponibili
+                if (categoryManager != null) {
+                    Player player = (Player) sender;
+                    List<String> availableCategories = categoryManager.getAvailableCategories(player);
+                    
+                    for (String category : availableCategories) {
+                        if (category.toLowerCase().startsWith(args[1].toLowerCase())) {
+                            completions.add(category);
+                        }
+                    }
+                }
+            }
+            else if (args[0].equalsIgnoreCase("info") || 
+                     args[0].equalsIgnoreCase("close") || 
+                     args[0].equalsIgnoreCase("reply")) {
                 
-                List<Ticket> tickets;
                 if (sender instanceof Player) {
                     Player player = (Player) sender;
+                    List<Ticket> tickets;
+                    
                     if (player.hasPermission("gktickets.staff")) {
                         tickets = databaseManager.getOpenTickets();
                     } else {
@@ -649,5 +743,122 @@ public class TicketCommand implements CommandExecutor, TabCompleter {
         }
         
         return completions;
+    }
+    
+    /**
+     * Gestisce il comando per dare feedback a un ticket chiuso
+     */
+    private void handleFeedbackCommand(Player player, String[] args) {
+        if (!player.hasPermission("gktickets.feedback")) {
+            player.sendMessage(plugin.getMessageManager().getMessage("no-permission"));
+            return;
+        }
+        
+        if (args.length < 2) {
+            player.sendMessage(plugin.getMessageManager().getMessage("ticket-feedback-usage"));
+            return;
+        }
+        
+        int ticketId;
+        try {
+            ticketId = Integer.parseInt(args[1]);
+        } catch (NumberFormatException e) {
+            player.sendMessage(plugin.getMessageManager().getMessage("ticket-not-found"));
+            return;
+        }
+        
+        // Verifica che il ticket esista, sia chiuso e appartenga al giocatore
+        Ticket ticket = databaseManager.getTicketById(ticketId);
+        if (ticket == null) {
+            player.sendMessage(plugin.getMessageManager().getMessage("ticket-not-found"));
+            return;
+        }
+        
+        if (!ticket.getPlayerUuid().equals(player.getUniqueId())) {
+            player.sendMessage(plugin.getMessageManager().getMessage("ticket-feedback-not-owner"));
+            return;
+        }
+        
+        if (ticket.isOpen()) {
+            player.sendMessage(plugin.getMessageManager().getMessage("ticket-feedback-still-open"));
+            return;
+        }
+        
+        // Verifica se è già stato dato feedback
+        if (databaseManager.hasTicketFeedback(ticketId)) {
+            player.sendMessage(plugin.getMessageManager().getMessage("ticket-feedback-already-given"));
+            return;
+        }
+        
+        // Se è specificato solo l'ID, mostra l'interfaccia di valutazione
+        if (args.length == 2) {
+            player.sendMessage(plugin.getMessageManager().getMessage("ticket-feedback-header"));
+            
+            // Costruisci i pulsanti per le stelle
+            for (int rating = 1; rating <= 5; rating++) {
+                TextComponent star = new TextComponent(plugin.getMessageManager().formatMessage("ticket-feedback-star", 
+                        Map.of("rating", String.valueOf(rating))));
+                        
+                star.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, 
+                        new ComponentBuilder("§7Valuta questo ticket con " + rating + " " + (rating == 1 ? "stella" : "stelle")).create()));
+                star.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, 
+                        "/ticket feedback " + ticketId + " " + rating));
+                
+                player.spigot().sendMessage(star);
+            }
+            player.sendMessage(plugin.getMessageManager().getMessage("ticket-feedback-footer"));
+            return;
+        }
+        
+        // Processa la valutazione
+        int rating;
+        try {
+            rating = Integer.parseInt(args[2]);
+            if (rating < 1 || rating > 5) throw new NumberFormatException();
+        } catch (NumberFormatException e) {
+            player.sendMessage(plugin.getMessageManager().getMessage("ticket-feedback-invalid-rating"));
+            return;
+        }
+        
+        // Salva il commento se fornito
+        String comment = null;
+        if (args.length > 3) {
+            comment = String.join(" ", Arrays.copyOfRange(args, 3, args.length));
+        }
+        
+        // Salva il feedback nel database
+        boolean success = databaseManager.saveTicketFeedback(ticketId, player.getUniqueId(), rating, comment);
+        
+        if (success) {
+            player.sendMessage(plugin.getMessageManager().formatMessage("ticket-feedback-success", 
+                    Map.of("id", String.valueOf(ticketId), "rating", String.valueOf(rating))));
+        } else {
+            player.sendMessage(plugin.getMessageManager().getMessage("ticket-feedback-error"));
+        }
+    }
+    
+    /**
+     * Gestisce il comando per visualizzare le statistiche
+     */
+    private void handleStatsCommand(Player player, String[] args) {
+        if (!player.hasPermission("gktickets.stats")) {
+            player.sendMessage(plugin.getMessageManager().getMessage("no-permission"));
+            return;
+        }
+        
+        // Implementazione segnaposto - questo dovrebbe essere espanso
+        player.sendMessage(plugin.getMessageManager().getMessage("stats-header"));
+        
+        // Ottieni conteggi dei ticket
+        int totalTickets = 0;
+        int openTickets = 0;
+        int closedTickets = 0;
+        
+        // Esempio di visualizzazione delle statistiche sui conteggi dei ticket
+        player.sendMessage("§7Tickets totali: §e" + totalTickets);
+        player.sendMessage("§7Tickets aperti: §a" + openTickets);
+        player.sendMessage("§7Tickets chiusi: §c" + closedTickets);
+        
+        player.sendMessage(plugin.getMessageManager().getMessage("stats-footer"));
     }
 }

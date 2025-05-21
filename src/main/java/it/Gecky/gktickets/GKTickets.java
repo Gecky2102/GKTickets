@@ -1,9 +1,12 @@
 package it.Gecky.gktickets;
 
+import it.Gecky.gktickets.categories.CategoryManager;
 import it.Gecky.gktickets.commands.TicketCommand;
 import it.Gecky.gktickets.database.DatabaseManager;
 import it.Gecky.gktickets.integrations.DiscordIntegration;
+import it.Gecky.gktickets.listeners.JoinListener;
 import it.Gecky.gktickets.notifications.NotificationManager;
+import it.Gecky.gktickets.tasks.FeedbackReminderTask;  // Add this import
 import it.Gecky.gktickets.utils.ConfigManager;
 import it.Gecky.gktickets.utils.MessageManager;
 import it.Gecky.gktickets.utils.VersionUtils;
@@ -19,6 +22,7 @@ public final class GKTickets extends JavaPlugin {
     private ConfigManager configManager;
     private MessageManager messageManager;
     private DiscordIntegration discordIntegration;
+    private CategoryManager categoryManager;
     private VersionUtils versionUtils;
     private boolean placeholderAPIEnabled = false;
     private final String version = "1.0.2";
@@ -43,6 +47,9 @@ public final class GKTickets extends JavaPlugin {
         // Caricamento configurazione e messaggi
         this.configManager = new ConfigManager(this);
         this.messageManager = new MessageManager(this);
+        
+        // Inizializzazione del category manager
+        this.categoryManager = new CategoryManager(this);
         
         // Inizializzazione del database manager
         this.databaseManager = new DatabaseManager(this);
@@ -75,6 +82,13 @@ public final class GKTickets extends JavaPlugin {
             getCommand("tk").setTabCompleter(new TicketCommand(this));
         } catch (Exception e) {
             getLogger().warning("Non è stato possibile registrare l'alias 'tk'. Questo potrebbe essere normale per alcune versioni di Bukkit.");
+        }
+        
+        // Avvio task di promemoria feedback (ogni 30 minuti)
+        int reminderInterval = getConfig().getInt("feedback.reminder-interval", 30) * 60 * 20; // Converti da minuti a ticks
+        if (reminderInterval > 0) {
+            new FeedbackReminderTask(this).runTaskTimer(this, reminderInterval, reminderInterval);
+            getLogger().info("Task promemoria feedback avviato, intervallo: " + (reminderInterval / (60 * 20)) + " minuti");
         }
         
         getLogger().info("GKTickets è stato avviato con successo!");
@@ -116,6 +130,10 @@ public final class GKTickets extends JavaPlugin {
     
     public VersionUtils getVersionUtils() {
         return versionUtils;
+    }
+    
+    public CategoryManager getCategoryManager() {
+        return categoryManager;
     }
     
     /**

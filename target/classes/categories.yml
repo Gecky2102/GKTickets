@@ -1,0 +1,43 @@
+# GKTickets - Configurazione Categorie
+# Definizione delle categorie disponibili per i ticket
+
+categories:
+  # Categoria per problemi tecnici
+  bug:
+    name: "Bug"
+    description: "Segnalazione di bug o problemi tecnici"
+    color: "&c"  # Codice colore rosso
+    icon: "✖"    # Icona per la visualizzazione in chat
+    default_permission: true  # Se true, tutti possono usare questa categoria senza permesso specifico
+  
+  # Categoria per domande
+  question:
+    name: "Domanda"
+    description: "Domande sul funzionamento del server"
+    color: "&9"  # Codice colore blu
+    icon: "?"
+    default_permission: true
+  
+  # Categoria per suggerimenti
+  suggestion:
+    name: "Suggerimento"
+    description: "Suggerimenti per migliorare il server"
+    color: "&2"  # Codice colore verde
+    icon: "+"
+    default_permission: true
+  
+  # Categoria per problemi con altri giocatori
+  player:
+    name: "Giocatore"
+    description: "Segnalazione di problemi con altri giocatori"
+    color: "&e"  # Codice colore giallo
+    icon: "⚔"
+    default_permission: false  # Richiede permesso specifico
+
+  # Categoria per problemi di acquisti o donazioni
+  payment:
+    name: "Pagamento"
+    description: "Problemi con acquisti o donazioni"
+    color: "&6"  # Codice colore arancione
+    icon: "$"
+    default_permission: false
