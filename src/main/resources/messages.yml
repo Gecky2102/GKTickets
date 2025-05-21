@@ -60,6 +60,12 @@ ticket-user-usage: "{prefix} &cUtilizzo corretto: &7/ticket user <nomeutente>"
 ticket-user-title: "{prefix} &e&lTicket di &f{player}&e:"
 ticket-user-not-found: "{prefix} &cNessun ticket trovato per &f{player}&c."
 
+# User command messages
+tickets-for-player-header: "{prefix} &eTutti i ticket di &6{player} &8(&7{count}&8)"
+ticket-list-item: "&8[&6#{id}&8] &7{status_color}{status} &8- &f{description_short}"
+no-tickets-found-for-player: "{prefix} &cNessun ticket trovato per il giocatore &e{player}"
+user-command-usage: "{prefix} &cUtilizzo: /ticket user <giocatore>"
+
 # Notifiche
 notification-new-ticket: "{prefix} &a&lNuovo ticket &f#&e{id} &ada &f{player}&a!"
 notification-new-reply-staff: "{prefix} &a{player} &aha risposto al ticket &f#&e{id}&a!"

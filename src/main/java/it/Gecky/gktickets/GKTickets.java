@@ -38,7 +38,7 @@ public final class GKTickets extends JavaPlugin {
         // Mostra banner di avvio migliorato
         getLogger().info("╔════════════════════════════╗");
         getLogger().info("║      GKTickets v" + version + "      ║");
-        getLogger().info("║    Creato da: gecky2102     ║");
+        getLogger().info("║    Creato da: gecky2102    ║");
         getLogger().info("╚════════════════════════════╝");
         getLogger().info("Server versione: " + versionUtils.getServerVersionString());
         

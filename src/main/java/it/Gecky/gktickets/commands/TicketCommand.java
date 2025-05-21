@@ -38,29 +38,8 @@ public class TicketCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        // Verifica se è un comando che può essere eseguito dalla console
-        if (!(sender instanceof Player) && args.length > 0) {
-            String subCommand = args[0].toLowerCase();
-            
-            switch (subCommand) {
-                case "list":
-                    handleListCommandConsole(sender, args);
-                    return true;
-                case "user":
-                    handleUserCommandConsole(sender, args);
-                    return true;
-                case "stats":
-                    handleStatsCommand(sender, args); // Fix this line to use CommandSender
-                    return true;
-                default:
-                    sender.sendMessage("§cQuesto comando può essere eseguito solo da un giocatore.");
-                    return true;
-            }
-        }
-        
-        // Continua con il codice esistente per i giocatori
         if (!(sender instanceof Player)) {
-            sender.sendMessage("§cLa maggior parte dei comandi può essere eseguita solo da un giocatore.");
+            sender.sendMessage(plugin.getMessageManager().getMessage("player-only"));
             return true;
         }
 
@@ -777,54 +756,53 @@ public class TicketCommand implements CommandExecutor, TabCompleter {
     
     /**
      * Gestisce il comando per visualizzare le statistiche
-     * Versione che funziona sia per giocatori che per la console
      */
-    private void handleStatsCommand(CommandSender sender, String[] args) {
-        if (!sender.hasPermission("gktickets.stats")) {
-            sender.sendMessage(plugin.getMessageManager().getMessage("no-permission"));
+    private void handleStatsCommand(Player player, String[] args) {
+        if (!player.hasPermission("gktickets.stats")) {
+            player.sendMessage(plugin.getMessageManager().getMessage("no-permission"));
             return;
         }
         
         // Recupera le statistiche dal database
         Map<String, Object> stats = databaseManager.getTicketStats();
         
-        sender.sendMessage(plugin.getMessageManager().getMessage("stats-header"));
+        player.sendMessage(plugin.getMessageManager().getMessage("stats-header"));
         
         // Ticket aperti e chiusi
         int totalTickets = (int) stats.getOrDefault("total_tickets", 0);
         int openTickets = (int) stats.getOrDefault("open_tickets", 0);
         int closedTickets = (int) stats.getOrDefault("closed_tickets", 0);
         
-        sender.sendMessage(plugin.getMessageManager().formatMessage("stats-tickets-total", 
+        player.sendMessage(plugin.getMessageManager().formatMessage("stats-tickets-total", 
                 Map.of("count", String.valueOf(totalTickets))));
                 
-        sender.sendMessage(plugin.getMessageManager().formatMessage("stats-tickets-open", 
+        player.sendMessage(plugin.getMessageManager().formatMessage("stats-tickets-open", 
                 Map.of("count", String.valueOf(openTickets))));
                 
-        sender.sendMessage(plugin.getMessageManager().formatMessage("stats-tickets-closed", 
+        player.sendMessage(plugin.getMessageManager().formatMessage("stats-tickets-closed", 
                 Map.of("count", String.valueOf(closedTickets))));
         
         // Tempi medi
         String avgResponseTime = (String) stats.getOrDefault("avg_response_time_formatted", "N/A");
         String avgResolutionTime = (String) stats.getOrDefault("avg_resolution_time_formatted", "N/A");
         
-        sender.sendMessage(plugin.getMessageManager().formatMessage("stats-avg-response-time", 
+        player.sendMessage(plugin.getMessageManager().formatMessage("stats-avg-response-time", 
                 Map.of("time", avgResponseTime)));
                 
-        sender.sendMessage(plugin.getMessageManager().formatMessage("stats-avg-resolution-time", 
+        player.sendMessage(plugin.getMessageManager().formatMessage("stats-avg-resolution-time", 
                 Map.of("time", avgResolutionTime)));
         
         // Valutazione media
         double avgRating = (double) stats.getOrDefault("avg_rating", 0.0);
         
-        sender.sendMessage(plugin.getMessageManager().formatMessage("stats-avg-rating", 
+        player.sendMessage(plugin.getMessageManager().formatMessage("stats-avg-rating", 
                 Map.of("rating", String.valueOf(avgRating))));
                 
         // Grafico a barre della distribuzione delle valutazioni
         @SuppressWarnings("unchecked")
         Map<Integer, Integer> ratingDistribution = (Map<Integer, Integer>) stats.getOrDefault("rating_distribution", new HashMap<>());
         
-        sender.sendMessage(plugin.getMessageManager().getMessage("stats-rating-distribution"));
+        player.sendMessage(plugin.getMessageManager().getMessage("stats-rating-distribution"));
         
         int totalRatings = ratingDistribution.values().stream().mapToInt(Integer::intValue).sum();
         for (int i = 5; i >= 1; i--) {
@@ -838,19 +816,14 @@ public class TicketCommand implements CommandExecutor, TabCompleter {
                 bar.append("█");
             }
             
-            sender.sendMessage(plugin.getMessageManager().formatMessage("stats-rating-bar", 
+            player.sendMessage(plugin.getMessageManager().formatMessage("stats-rating-bar", 
                     Map.of("stars", String.valueOf(i), 
                            "count", String.valueOf(count),
                            "percentage", String.format("%.1f", percentage),
                            "bar", bar.toString())));
         }
         
-        sender.sendMessage(plugin.getMessageManager().getMessage("stats-footer"));
-    }
-    
-    // Update the Player-specific method to call the CommandSender version
-    private void handleStatsCommand(Player player, String[] args) {
-        handleStatsCommand((CommandSender) player, args);
+        player.sendMessage(plugin.getMessageManager().getMessage("stats-footer"));
     }
 
     @Override
