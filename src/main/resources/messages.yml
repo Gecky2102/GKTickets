@@ -55,17 +55,76 @@ ticket-reply-usage: "{prefix} &cUtilizzo corretto: &7/ticket reply <id> <messagg
 ticket-reply-success: "{prefix} &aRisposta inviata con successo al ticket &f#&e{id}"
 ticket-reply-error: "{prefix} &cErrore durante l'invio della risposta. Riprova più tardi."
 
+# Messaggi per il comando user
+ticket-user-usage: "{prefix} &cUtilizzo corretto: &7/ticket user <nomeutente>"
+ticket-user-title: "{prefix} &e&lTicket di &f{player}&e:"
+ticket-user-not-found: "{prefix} &cNessun ticket trovato per &f{player}&c."
+
 # Notifiche
 notification-new-ticket: "{prefix} &a&lNuovo ticket &f#&e{id} &ada &f{player}&a!"
 notification-new-reply-staff: "{prefix} &a{player} &aha risposto al ticket &f#&e{id}&a!"
 notification-new-reply-player: "{prefix} &a{player} &aha risposto al tuo ticket &f#&e{id}&a!"
 notification-ticket-closed: "{prefix} &cIl tuo ticket &f#&e{id} &cè stato chiuso da &f{player}"
 
+# Notifiche di login
+login-notification-unread-replies-header: "{prefix} &eHai ticket con risposte non lette:"
+login-notification-unread-replies-item: " &8- &6Ticket #{id} &7ha &e{count} &7nuove risposte &8[&b?&8]"
+login-notification-staff-single: "{prefix} &aC'è &e1 &aticket che richiede la tua attenzione &7(#&e{id}&7)"
+login-notification-staff-multiple: "{prefix} &aCi sono &e{count} &aticket che richiedono la tua attenzione"
+
+# Notifiche di login per feedback
+login-notification-pending-feedback-header: "{prefix} &eHai dei ticket chiusi che richiedono il tuo feedback:"
+login-notification-pending-feedback-item: " &8- &6Ticket #{id} &7- &e[Lascia Feedback]"
+login-notification-pending-feedback-more: " &7...e &e{count} &7altri ticket"
+
+# Promemoria feedback
+feedback-reminder-header: "{prefix} &8&m--------------------"
+feedback-reminder-msg: "&7Hai &e{count} &7ticket chiusi che richiedono feedback. &6[Clicca qui]"
+
+# Comandi Feedback
+ticket-feedback-usage: "{prefix} &cUtilizzo: /ticket feedback <id> [valutazione] [commento]"
+ticket-feedback-header: "{prefix} &6Valuta questo ticket da 1 a 5 stelle:"
+ticket-feedback-star: " &6[{rating}★]"
+ticket-feedback-footer: "&7Clicca sulla valutazione desiderata."
+ticket-feedback-success: "{prefix} &aGrazie per il tuo feedback sul ticket #{id}! Hai dato {rating} stelle."
+ticket-feedback-error: "{prefix} &cSi è verificato un errore durante il salvataggio del feedback."
+ticket-feedback-not-owner: "{prefix} &cPuoi dare feedback solo per i tuoi ticket."
+ticket-feedback-still-open: "{prefix} &cPuoi dare feedback solo per ticket chiusi."
+ticket-feedback-invalid-rating: "{prefix} &cLa valutazione deve essere un numero da 1 a 5."
+
+# Statistiche
+stats-header: "{prefix} &6&lStatistiche Ticket &8&m--------------------"
+stats-tickets-total: "&7Ticket Totali: &e{count}"
+stats-tickets-open: "&7Ticket Aperti: &a{count}"
+stats-tickets-closed: "&7Ticket Chiusi: &c{count}"
+stats-avg-response-time: "&7Tempo Medio Prima Risposta: &e{time}"
+stats-avg-resolution-time: "&7Tempo Medio Risoluzione: &e{time}"
+stats-avg-rating: "&7Valutazione Media: &e{rating} &6★"
+stats-rating-distribution: "&7Distribuzione Valutazioni:"
+stats-rating-bar: " &6{stars}★ &7({count}) &8[&r{bar}&8] &7{percentage}%"
+stats-footer: "{prefix} &8&m--------------------"
+
 # Messaggi di aiuto
 help-title: "{divider}\n &e&lGKTickets &f- &7Comandi Disponibili\n{divider}"
 help-create: " &e/ticket create <descrizione> &8- &7Crea un nuovo ticket"
 help-list: " &e/ticket list &8- &7Visualizza i ticket aperti"
+help-user: " &e/ticket user <nomeutente> &8- &7Visualizza i ticket di un giocatore specifico"
 help-info: " &e/ticket info <id> &8- &7Visualizza i dettagli di un ticket"
 help-close: " &e/ticket close <id> &8- &7Chiudi un ticket"
 help-reply: " &e/ticket reply <id> <messaggio> &8- &7Rispondi a un ticket"
 help-footer: "{divider}"
+
+# Help messages
+help-header: "{prefix} &6&lGuida Comandi"
+help-divider: "&8&m--------------------"
+help-create: " &6/ticket create <descrizione> &8- &7Crea un nuovo ticket"
+help-list: " &6/ticket list &8- &7Visualizza lista ticket"
+help-info: " &6/ticket info <id> &8- &7Visualizza dettagli ticket"
+help-reply: " &6/ticket reply <id> <messaggio> &8- &7Rispondi a un ticket"
+help-close-own: " &6/ticket close <id> &8- &7Chiudi un tuo ticket"
+help-close-others: " &6/ticket close <id> &8- &7Chiudi qualsiasi ticket"
+help-staff-header: "&e&lComandi Staff"
+help-user: " &6/ticket user <giocatore> &8- &7Visualizza ticket di un giocatore"
+help-stats: " &6/ticket stats &8- &7Visualizza statistiche ticket"
+help-feedback: " &6/ticket feedback <id> [rating] &8- &7Dai feedback su un ticket chiuso"
+help-footer: "&7Usa &e/tk &7invece di &e/ticket &7per abbreviare i comandi"
