@@ -1,3 +1,11 @@
+it/Gecky/gktickets/models/Reply.class
+it/Gecky/gktickets/tasks/AutoCloseTask.class
+it/Gecky/gktickets/blacklist/BlacklistManager.class
+it/Gecky/gktickets/models/StaffNote.class
+it/Gecky/gktickets/integrations/DiscordIntegration.class
+it/Gecky/gktickets/GKTickets.class
+it/Gecky/gktickets/blacklist/BlacklistEntry.class
+it/Gecky/gktickets/reporting/ReportManager.class
 it/Gecky/gktickets/utils/MessageManager.class
 it/Gecky/gktickets/utils/ConfigManager.class
 it/Gecky/gktickets/commands/TicketCommand.class
@@ -5,11 +13,10 @@ it/Gecky/gktickets/listeners/JoinListener.class
 it/Gecky/gktickets/models/Ticket.class
 me/clip/placeholderapi/PlaceholderAPI.class
 it/Gecky/gktickets/database/DatabaseManager.class
-it/Gecky/gktickets/models/Reply.class
 it/Gecky/gktickets/utils/VersionUtils.class
-it/Gecky/gktickets/integrations/DiscordIntegration.class
+it/Gecky/gktickets/notes/StaffNoteManager.class
 it/Gecky/gktickets/categories/TicketCategory.class
-it/Gecky/gktickets/GKTickets.class
+it/Gecky/gktickets/notes/StaffNote.class
 it/Gecky/gktickets/categories/CategoryManager.class
 it/Gecky/gktickets/notifications/NotificationManager.class
 it/Gecky/gktickets/listeners/JoinListener$1.class

@@ -41,10 +41,18 @@ public class ConfigManager {
         return config.getInt("tickets.max-per-user", 3);
     }
 
+    /**
+     * Check if auto-close feature is enabled
+     * @return true if enabled
+     */
     public boolean isAutoCloseEnabled() {
         return config.getBoolean("tickets.auto-close.enabled", false);
     }
 
+    /**
+     * Get the auto-close time in hours
+     * @return hours of inactivity before auto-close
+     */
     public int getAutoCloseTime() {
         return config.getInt("tickets.auto-close.time", 72);
     }

@@ -7,6 +7,7 @@ import it.Gecky.gktickets.models.Ticket;
 import it.Gecky.gktickets.notifications.NotificationManager;
 import it.Gecky.gktickets.categories.CategoryManager;
 import it.Gecky.gktickets.categories.TicketCategory;
+import it.Gecky.gktickets.blacklist.BlacklistEntry;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -90,6 +91,12 @@ public class TicketCommand implements CommandExecutor, TabCompleter {
                 break;
             case "reload":
                 handleReloadCommand(player);
+                break;
+            case "note":
+                handleNoteCommand(player, args);
+                break;
+            case "blacklist":
+                handleBlacklistCommand(player, args);
                 break;
             default:
                 sendHelpMessage(player);
@@ -380,6 +387,28 @@ public class TicketCommand implements CommandExecutor, TabCompleter {
             }
         }
         
+        // Mostra le note dello staff se presenti
+        if (player.hasPermission("gktickets.staff")) {
+            List<it.Gecky.gktickets.models.StaffNote> notes = plugin.getStaffNoteManager().getNotesForTicket(ticket.getId());
+            
+            if (!notes.isEmpty()) {
+                Map<String, String> noteTitlePlaceholders = new HashMap<>();
+                noteTitlePlaceholders.put("count", String.valueOf(notes.size()));
+                player.sendMessage(plugin.getMessageManager().formatMessage("ticket-info-notes-title", noteTitlePlaceholders));
+                
+                for (it.Gecky.gktickets.models.StaffNote note : notes) {
+                    Map<String, String> notePlaceholders = new HashMap<>();
+                    notePlaceholders.put("staff", note.getStaffName());
+                    notePlaceholders.put("date", note.getCreatedAt());
+                    notePlaceholders.put("note", note.getNote());
+                    
+                    player.sendMessage(plugin.getMessageManager().formatMessage("ticket-info-note-format", notePlaceholders));
+                }
+            } else {
+                player.sendMessage(plugin.getMessageManager().getMessage("ticket-info-no-notes"));
+            }
+        }
+        
         player.sendMessage(plugin.getMessageManager().getMessage("ticket-info-footer"));
         
         // Aggiungi pulsanti interattivi se il ticket è ancora aperto
@@ -652,27 +681,29 @@ public class TicketCommand implements CommandExecutor, TabCompleter {
     }
     
     private void sendHelpMessage(Player player) {
+        player.sendMessage(plugin.getMessageManager().getMessage("help-header"));
         player.sendMessage(plugin.getMessageManager().getMessage("help-title"));
         player.sendMessage(plugin.getMessageManager().getMessage("help-create"));
         player.sendMessage(plugin.getMessageManager().getMessage("help-list"));
-        
-        if (player.hasPermission("gktickets.staff") || player.hasPermission("gktickets.admin")) {
-            player.sendMessage(plugin.getMessageManager().getMessage("help-user"));
-        }
-        
-        player.sendMessage(plugin.getMessageManager().getMessage("divider"));
-        
         player.sendMessage(plugin.getMessageManager().getMessage("help-info"));
+        player.sendMessage(plugin.getMessageManager().getMessage("help-reply"));
+        player.sendMessage(plugin.getMessageManager().getMessage("help-close"));
         
         if (player.hasPermission("gktickets.staff")) {
-            player.sendMessage(plugin.getMessageManager().getMessage("help-close"));
+            player.sendMessage(plugin.getMessageManager().getMessage("help-staff-header"));
+            player.sendMessage(plugin.getMessageManager().getMessage("help-user"));
+            player.sendMessage(plugin.getMessageManager().getMessage("help-note"));
         }
-        
-        player.sendMessage(plugin.getMessageManager().getMessage("help-reply"));
         
         if (player.hasPermission("gktickets.admin")) {
-            player.sendMessage(plugin.getMessageManager().getMessage("help-footer"));
+            player.sendMessage(plugin.getMessageManager().getMessage("help-stats"));
         }
+        
+        if (player.hasPermission("gktickets.blacklist")) {
+            player.sendMessage(plugin.getMessageManager().getMessage("help-blacklist"));
+        }
+        
+        player.sendMessage(plugin.getMessageManager().getMessage("help-footer"));
     }
 
     @Override
@@ -686,14 +717,16 @@ public class TicketCommand implements CommandExecutor, TabCompleter {
             subCommands.add("list");
             subCommands.add("info");
             subCommands.add("reply");
+            subCommands.add("close");
             subCommands.add("feedback");
             subCommands.add("categories");
             
             if (sender.hasPermission("gktickets.staff") || sender.hasPermission("gktickets.admin")) {
-                subCommands.add("close");
                 subCommands.add("user");
+                subCommands.add("note");
                 subCommands.add("stats");
                 subCommands.add("reload");
+                subCommands.add("blacklist");
             }
             
             for (String subCommand : subCommands) {
@@ -714,11 +747,10 @@ public class TicketCommand implements CommandExecutor, TabCompleter {
                         }
                     }
                 }
-            }
-            else if (args[0].equalsIgnoreCase("info") || 
+            } else if (args[0].equalsIgnoreCase("info") || 
                      args[0].equalsIgnoreCase("close") || 
-                     args[0].equalsIgnoreCase("reply")) {
-                
+                     args[0].equalsIgnoreCase("reply") ||
+                     args[0].equalsIgnoreCase("feedback")) {
                 if (sender instanceof Player) {
                     Player player = (Player) sender;
                     List<Ticket> tickets;
@@ -742,6 +774,52 @@ public class TicketCommand implements CommandExecutor, TabCompleter {
                     if (onlinePlayer.getName().toLowerCase().startsWith(partial)) {
                         completions.add(onlinePlayer.getName());
                     }
+                }
+            } else if (args[0].equalsIgnoreCase("note")) {
+                if (sender.hasPermission("gktickets.staff")) {
+                    // Suggerisci gli ID dei ticket
+                    for (Ticket ticket : databaseManager.getOpenTickets()) {
+                        String ticketId = String.valueOf(ticket.getId());
+                        if (ticketId.startsWith(args[1])) {
+                            completions.add(ticketId);
+                        }
+                    }
+                }
+            } else if (args[0].equalsIgnoreCase("blacklist")) {
+                if (sender.hasPermission("gktickets.blacklist")) {
+                    List<String> subCommands = new ArrayList<>();
+                    subCommands.add("add");
+                    subCommands.add("remove");
+                    subCommands.add("list");
+                    subCommands.add("info");
+                    
+                    return subCommands.stream()
+                           .filter(cmd -> cmd.startsWith(args[1].toLowerCase()))
+                           .collect(Collectors.toList());
+                }
+            }
+        } else if (args.length == 3) {
+            if (args[0].equalsIgnoreCase("blacklist")) {
+                if ((args[1].equalsIgnoreCase("remove") && sender.hasPermission("gktickets.blacklist.remove")) ||
+                    (args[1].equalsIgnoreCase("info") && sender.hasPermission("gktickets.blacklist.info"))) {
+                    // Suggerisci i nomi dei giocatori per rimuovere o info
+                    String partial = args[2].toLowerCase();
+                    List<String> names = new ArrayList<>();
+                    
+                    for (BlacklistEntry entry : plugin.getBlacklistManager().getBlacklistedPlayers()) {
+                        if (entry.getPlayerName().toLowerCase().startsWith(partial)) {
+                            names.add(entry.getPlayerName());
+                        }
+                    }
+                    
+                    return names;
+                } else if (args[1].equalsIgnoreCase("add") && sender.hasPermission("gktickets.blacklist.add")) {
+                    // Suggerisci i giocatori online per l'aggiunta
+                    String partial = args[2].toLowerCase();
+                    return plugin.getServer().getOnlinePlayers().stream()
+                           .map(Player::getName)
+                           .filter(name -> name.toLowerCase().startsWith(partial))
+                           .collect(Collectors.toList());
                 }
             }
         }
@@ -861,10 +939,12 @@ public class TicketCommand implements CommandExecutor, TabCompleter {
             "stats-tickets-total", 
             Map.of("count", String.valueOf(stats.getOrDefault("total", 0)))
         ));
+        
         player.sendMessage(plugin.getMessageManager().formatMessage(
             "stats-tickets-open", 
             Map.of("count", String.valueOf(stats.getOrDefault("open", 0)))
         ));
+        
         player.sendMessage(plugin.getMessageManager().formatMessage(
             "stats-tickets-closed", 
             Map.of("count", String.valueOf(stats.getOrDefault("closed", 0)))
@@ -935,7 +1015,6 @@ public class TicketCommand implements CommandExecutor, TabCompleter {
         try {
             // Call only the main reloadConfig method
             plugin.reloadConfig();
-            // Don't call plugin.getConfigManager().reloadConfig() here as it's already done in plugin.reloadConfig()
             
             // Force reference update for the category manager
             this.categoryManager = plugin.getCategoryManager();
@@ -945,6 +1024,379 @@ public class TicketCommand implements CommandExecutor, TabCompleter {
             player.sendMessage(plugin.getMessageManager().getMessage("reload-error"));
             plugin.getLogger().severe("Errore durante il ricaricamento: " + e.getMessage());
             e.printStackTrace();
+        }
+    }
+    
+    /**
+     * Gestisce il comando per aggiungere note dello staff ai ticket
+     */
+    private void handleNoteCommand(Player player, String[] args) {
+        if (!player.hasPermission("gktickets.staff")) {
+            player.sendMessage(plugin.getMessageManager().getMessage("no-permission"));
+            return;
+        }
+        
+        if (args.length < 3) {
+            player.sendMessage(plugin.getMessageManager().getMessage("note-usage"));
+            return;
+        }
+        
+        int ticketId;
+        try {
+            ticketId = Integer.parseInt(args[1]);
+        } catch (NumberFormatException e) {
+            player.sendMessage(plugin.getMessageManager().getMessage("invalid-ticket-id"));
+            return;
+        }
+        
+        Ticket ticket = databaseManager.getTicketById(ticketId);
+        if (ticket == null) {
+            player.sendMessage(plugin.getMessageManager().getMessage("ticket-not-found"));
+            return;
+        }
+        
+        // Combina gli argomenti rimanenti come nota
+        String note = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
+        
+        // Aggiungi la nota
+        boolean success = plugin.getStaffNoteManager().addNote(ticketId, player, note);
+        
+        if (success) {
+            Map<String, String> placeholders = new HashMap<>();
+            placeholders.put("id", String.valueOf(ticketId));
+            player.sendMessage(plugin.getMessageManager().formatMessage("note-added-success", placeholders));
+        } else {
+            player.sendMessage(plugin.getMessageManager().getMessage("note-added-error"));
+        }
+    }
+    
+    /**
+     * Gestisce i comandi della blacklist
+     */
+    private void handleBlacklistCommand(Player player, String[] args) {
+        if (!player.hasPermission("gktickets.blacklist")) {
+            player.sendMessage(plugin.getMessageManager().getMessage("no-permission"));
+            return;
+        }
+        
+        if (args.length < 2) {
+            player.sendMessage(plugin.getMessageManager().getMessage("blacklist-usage"));
+            return;
+        }
+        
+        String subCommand = args[1].toLowerCase();
+        
+        switch (subCommand) {
+            case "add":
+                handleBlacklistAddCommand(player, args);
+                break;
+            case "remove":
+                handleBlacklistRemoveCommand(player, args);
+                break;
+            case "list":
+                handleBlacklistListCommand(player, args);
+                break;
+            case "info":
+                handleBlacklistInfoCommand(player, args);
+                break;
+            default:
+                player.sendMessage(plugin.getMessageManager().getMessage("blacklist-usage"));
+                break;
+        }
+    }
+    
+    /**
+     * Gestisce l'aggiunta di un giocatore alla blacklist
+     */
+    private void handleBlacklistAddCommand(Player player, String[] args) {
+        if (!player.hasPermission("gktickets.blacklist.add")) {
+            player.sendMessage(plugin.getMessageManager().getMessage("no-permission"));
+            return;
+        }
+        
+        if (args.length < 4) {
+            player.sendMessage(plugin.getMessageManager().getMessage("blacklist-add-usage"));
+            return;
+        }
+        
+        String targetName = args[2];
+        
+        // Trova il giocatore di destinazione (può essere offline)
+        UUID targetUUID = null;
+        String finalTargetName = targetName;
+        
+        // Controlla prima se il giocatore è online
+        Player target = plugin.getServer().getPlayer(targetName);
+        if (target != null) {
+            targetUUID = target.getUniqueId();
+            finalTargetName = target.getName();
+        } else {
+            // Prova a trovarlo come giocatore offline
+            try {
+                @SuppressWarnings("deprecation")
+                org.bukkit.OfflinePlayer offlinePlayer = plugin.getServer().getOfflinePlayer(targetName);
+                if (offlinePlayer.hasPlayedBefore()) {
+                    targetUUID = offlinePlayer.getUniqueId();
+                    finalTargetName = offlinePlayer.getName();
+                }
+            } catch (Exception ex) {
+                player.sendMessage("§cGiocatore non trovato. Assicurati di inserire il nome esatto.");
+                return;
+            }
+        }
+        
+        if (targetUUID == null) {
+            player.sendMessage("§cGiocatore non trovato. Assicurati di inserire il nome esatto.");
+            return;
+        }
+        
+        // Controlla se è già nella blacklist
+        if (plugin.getBlacklistManager().isBlacklisted(targetUUID)) {
+            Map<String, String> placeholders = Map.of("player", finalTargetName);
+            player.sendMessage(plugin.getMessageManager().formatMessage("blacklist-player-already", placeholders));
+            return;
+        }
+        
+        // Ottieni il motivo (combina tutti gli argomenti dall'indice 3 in poi)
+        String reason = String.join(" ", Arrays.copyOfRange(args, 3, args.length));
+        
+        // Ottieni i giorni di scadenza se specificati
+        int expiryDays = plugin.getConfig().getInt("blacklist.default-expiry", 7);
+        if (args.length > 4) {
+            try {
+                expiryDays = Integer.parseInt(args[args.length - 1]);
+                
+                // Se è stato specificato il termine, rimuovilo dal motivo
+                reason = String.join(" ", Arrays.copyOfRange(args, 3, args.length - 1));
+            } catch (NumberFormatException ignored) {
+                // L'ultimo argomento non era un numero, va bene così
+            }
+        }
+        
+        // Aggiungi alla blacklist
+        boolean success = plugin.getBlacklistManager().blacklistPlayer(
+            targetUUID, finalTargetName, reason, player.getUniqueId(), player.getName(), expiryDays);
+        
+        if (success) {
+            // Notifica all'amministratore
+            Map<String, String> placeholders = new HashMap<>();
+            placeholders.put("player", finalTargetName);
+            placeholders.put("reason", reason);
+            
+            if (expiryDays > 0) {
+                placeholders.put("days", String.valueOf(expiryDays));
+                player.sendMessage(plugin.getMessageManager().formatMessage("blacklist-add-with-expiry", placeholders));
+            } else {
+                player.sendMessage(plugin.getMessageManager().formatMessage("blacklist-add-permanent", placeholders));
+            }
+            
+            // Notifica al giocatore se è online
+            if (target != null && target.isOnline()) {
+                placeholders.put("reason", reason);
+                
+                target.sendMessage(plugin.getMessageManager().formatMessage("blacklist-player-denied", placeholders));
+                target.sendMessage(plugin.getMessageManager().formatMessage("blacklist-reason", placeholders));
+                
+                if (expiryDays > 0) {
+                    placeholders.put("days", String.valueOf(expiryDays));
+                    target.sendMessage(plugin.getMessageManager().formatMessage("blacklist-expires", placeholders));
+                } else {
+                    target.sendMessage(plugin.getMessageManager().getMessage("blacklist-permanent"));
+                }
+            }
+        } else {
+            player.sendMessage("§cErrore durante l'aggiunta del giocatore alla blacklist.");
+        }
+    }
+    
+    /**
+     * Gestisce la rimozione di un giocatore dalla blacklist
+     */
+    private void handleBlacklistRemoveCommand(Player player, String[] args) {
+        if (!player.hasPermission("gktickets.blacklist.remove")) {
+            player.sendMessage(plugin.getMessageManager().getMessage("no-permission"));
+            return;
+        }
+        
+        if (args.length < 3) {
+            player.sendMessage(plugin.getMessageManager().getMessage("blacklist-remove-usage"));
+            return;
+        }
+        
+        String targetName = args[2];
+        
+        // Trova il giocatore di destinazione (può essere offline)
+        UUID targetUUID = null;
+        String finalTargetName = targetName;
+        
+        // Controlla prima se il giocatore è online
+        Player target = plugin.getServer().getPlayer(targetName);
+        if (target != null) {
+            targetUUID = target.getUniqueId();
+            finalTargetName = target.getName();
+        } else {
+            // Prova a trovarlo come giocatore offline
+            try {
+                @SuppressWarnings("deprecation")
+                org.bukkit.OfflinePlayer offlinePlayer = plugin.getServer().getOfflinePlayer(targetName);
+                if (offlinePlayer.hasPlayedBefore()) {
+                    targetUUID = offlinePlayer.getUniqueId();
+                    finalTargetName = offlinePlayer.getName();
+                }
+            } catch (Exception ex) {
+                player.sendMessage("§cGiocatore non trovato. Assicurati di inserire il nome esatto.");
+                return;
+            }
+        }
+        
+        if (targetUUID == null) {
+            player.sendMessage("§cGiocatore non trovato. Assicurati di inserire il nome esatto.");
+            return;
+        }
+        
+        // Rimuovi dalla blacklist
+        boolean success = plugin.getBlacklistManager().unblacklistPlayer(targetUUID);
+        
+        if (success) {
+            // Notifica all'amministratore
+            Map<String, String> placeholders = Map.of("player", finalTargetName);
+            player.sendMessage(plugin.getMessageManager().formatMessage("blacklist-remove-success", placeholders));
+            
+            // Notifica al giocatore se è online
+            if (target != null && target.isOnline()) {
+                target.sendMessage(plugin.getMessageManager().getMessage("prefix") + 
+                                 " §aSei stato rimosso dalla blacklist e puoi creare ticket di nuovo.");
+            }
+        } else {
+            Map<String, String> placeholders = Map.of("player", finalTargetName);
+            player.sendMessage(plugin.getMessageManager().formatMessage("blacklist-not-found", placeholders));
+        }
+    }
+    
+    /**
+     * Elenca tutti i giocatori nella blacklist
+     */
+    private void handleBlacklistListCommand(Player player, String[] args) {
+        if (!player.hasPermission("gktickets.blacklist.list")) {
+            player.sendMessage(plugin.getMessageManager().getMessage("no-permission"));
+            return;
+        }
+        
+        List<BlacklistEntry> blacklistedPlayers = plugin.getBlacklistManager().getBlacklistedPlayers();
+        
+        if (blacklistedPlayers.isEmpty()) {
+            player.sendMessage(plugin.getMessageManager().getMessage("blacklist-list-empty"));
+            return;
+        }
+        
+        // Messaggio di intestazione con conteggio
+        Map<String, String> headerPlaceholders = Map.of("count", String.valueOf(blacklistedPlayers.size()));
+        player.sendMessage(plugin.getMessageManager().formatMessage("blacklist-list-header", headerPlaceholders));
+        
+        // Elenca ogni giocatore nella blacklist
+        for (BlacklistEntry entry : blacklistedPlayers) {
+            Map<String, String> placeholders = new HashMap<>();
+            placeholders.put("player", entry.getPlayerName());
+            placeholders.put("reason", entry.getReason());
+            
+            String expires;
+            if (entry.isPermanent()) {
+                expires = "Permanente";
+            } else {
+                int daysRemaining = plugin.getBlacklistManager().getDaysRemaining(entry.getPlayerUUID());
+                expires = daysRemaining + " giorni";
+            }
+            placeholders.put("expires", expires);
+            
+            player.sendMessage(plugin.getMessageManager().formatMessage("blacklist-list-item", placeholders));
+        }
+    }
+    
+    /**
+     * Mostra informazioni dettagliate su un giocatore nella blacklist
+     */
+    private void handleBlacklistInfoCommand(Player player, String[] args) {
+        if (!player.hasPermission("gktickets.blacklist.info")) {
+            player.sendMessage(plugin.getMessageManager().getMessage("no-permission"));
+            return;
+        }
+        
+        if (args.length < 3) {
+            player.sendMessage(plugin.getMessageManager().getMessage("blacklist-info-usage"));
+            return;
+        }
+        
+        String targetName = args[2];
+        
+        // Trova il giocatore di destinazione (può essere offline)
+        UUID targetUUID = null;
+        String finalTargetName = targetName;
+        
+        // Controlla prima se il giocatore è online
+        Player target = plugin.getServer().getPlayer(targetName);
+        if (target != null) {
+            targetUUID = target.getUniqueId();
+            finalTargetName = target.getName();
+        } else {
+            // Prova a trovarlo come giocatore offline
+            try {
+                @SuppressWarnings("deprecation")
+                org.bukkit.OfflinePlayer offlinePlayer = plugin.getServer().getOfflinePlayer(targetName);
+                if (offlinePlayer.hasPlayedBefore()) {
+                    targetUUID = offlinePlayer.getUniqueId();
+                    finalTargetName = offlinePlayer.getName();
+                }
+            } catch (Exception ex) {
+                player.sendMessage("§cGiocatore non trovato. Assicurati di inserire il nome esatto.");
+                return;
+            }
+        }
+        
+        if (targetUUID == null) {
+            player.sendMessage("§cGiocatore non trovato. Assicurati di inserire il nome esatto.");
+            return;
+        }
+        
+        // Controlla se è nella blacklist
+        if (!plugin.getBlacklistManager().isBlacklisted(targetUUID)) {
+            Map<String, String> placeholders = Map.of("player", finalTargetName);
+            player.sendMessage(plugin.getMessageManager().formatMessage("blacklist-not-found", placeholders));
+            return;
+        }
+        
+        // Ottieni l'entry
+        BlacklistEntry entry = null;
+        for (BlacklistEntry bl : plugin.getBlacklistManager().getBlacklistedPlayers()) {
+            if (bl.getPlayerUUID().equals(targetUUID)) {
+                entry = bl;
+                break;
+            }
+        }
+        
+        if (entry != null) {
+            // Mostra informazioni dettagliate
+            Map<String, String> placeholders = new HashMap<>();
+            placeholders.put("player", entry.getPlayerName());
+            player.sendMessage(plugin.getMessageManager().formatMessage("blacklist-info-header", placeholders));
+            
+            placeholders.put("reason", entry.getReason());
+            player.sendMessage(plugin.getMessageManager().formatMessage("blacklist-info-reason", placeholders));
+            
+            placeholders.put("staff", entry.getBlacklistedByName());
+            player.sendMessage(plugin.getMessageManager().formatMessage("blacklist-info-by", placeholders));
+            
+            placeholders.put("date", entry.getCreatedAt());
+            player.sendMessage(plugin.getMessageManager().formatMessage("blacklist-info-date", placeholders));
+            
+            String expires;
+            if (entry.isPermanent()) {
+                expires = "Permanente";
+            } else {
+                expires = entry.getExpiresAt() + " (" + 
+                         plugin.getBlacklistManager().getDaysRemaining(entry.getPlayerUUID()) + " giorni)";
+            }
+            placeholders.put("expires", expires);
+            player.sendMessage(plugin.getMessageManager().formatMessage("blacklist-info-expires", placeholders));
         }
     }
 }

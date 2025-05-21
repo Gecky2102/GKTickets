@@ -112,10 +112,12 @@ help-reply: " &6/ticket reply <id> <messaggio> &8- &7Rispondi a un ticket"
 help-close: " &6/ticket close <id> &8- &7Chiudi un ticket"
 help-close-own: " &6/ticket close <id> &8- &7Chiudi un tuo ticket"
 help-close-others: " &6/ticket close <id> &8- &7Chiudi qualsiasi ticket"
+help-note: " &6/ticket note <id> <testo> &8- &7Aggiungi una nota staff a un ticket"
 help-staff-header: "&e&lComandi Staff"
 help-user: " &6/ticket user <giocatore> &8- &7Visualizza ticket di un giocatore"
 help-stats: " &6/ticket stats &8- &7Visualizza statistiche ticket"
 help-feedback: " &6/ticket feedback <id> [rating] &8- &7Dai feedback su un ticket chiuso"
+help-blacklist: " &6/ticket blacklist ... &8- &7Gestisci la blacklist"
 help-footer: "&7Usa &e/tk &7invece di &e/ticket &7per abbreviare i comandi"
 
 # Notifiche
@@ -128,3 +130,38 @@ notification-ticket-viewed: "{prefix} &7Il tuo ticket &f#&e{id} &7è stato visua
 # Messaggi di amministrazione
 reload-success: "{prefix} &aConfigurazione, messaggi e categorie ricaricati con successo!"
 reload-error: "{prefix} &cSi è verificato un errore durante il ricaricamento. Controlla la console."
+
+# Staff Notes Messages
+note-usage: "{prefix} &cUtilizzo corretto: &7/ticket note <id> <testo>"
+note-added-success: "{prefix} &aNota aggiunta con successo al ticket &f#&e{id}"
+note-added-error: "{prefix} &cErrore durante l'aggiunta della nota. Riprova più tardi."
+ticket-info-notes-title: " &c&lNote Staff &7({count})"
+ticket-info-note-format: " &c{staff} &8[{date}]&7: &f{note}"
+ticket-info-no-notes: " &7Nessuna nota dello staff."
+
+# Auto-close Messages
+ticket-auto-closed: "{prefix} &cIl tuo ticket &f#&e{id} &cè stato chiuso automaticamente per inattività"
+
+# Blacklist messages
+blacklist-player-already: "{prefix} &cIl giocatore &e{player} &cè già nella blacklist."
+blacklist-add-success: "{prefix} &aIl giocatore &e{player} &aè stato aggiunto alla blacklist per &e{reason}"
+blacklist-add-with-expiry: "{prefix} &aIl giocatore &e{player} &aè stato aggiunto alla blacklist per &e{days} &agiorni."
+blacklist-add-permanent: "{prefix} &aIl giocatore &e{player} &aè stato aggiunto alla blacklist permanentemente."
+blacklist-remove-success: "{prefix} &aIl giocatore &e{player} &aè stato rimosso dalla blacklist."
+blacklist-not-found: "{prefix} &cIl giocatore &e{player} &cnon è nella blacklist."
+blacklist-list-header: "{prefix} &e&lGiocatori nella Blacklist &8(&7{count}&8)"
+blacklist-list-empty: "{prefix} &7Nessun giocatore nella blacklist."
+blacklist-list-item: "&8- &e{player} &8| &7Motivo: &f{reason} &7| &f{expires}"
+blacklist-player-denied: "{prefix} &cNon puoi creare ticket perché sei nella blacklist."
+blacklist-reason: "{prefix} &cMotivo: &7{reason}"
+blacklist-expires: "{prefix} &cScade tra: &7{days} giorni"
+blacklist-permanent: "{prefix} &cBan permanente"
+blacklist-usage: "{prefix} &cUtilizzo: &7/ticket blacklist <add|remove|list|info>"
+blacklist-add-usage: "{prefix} &cUtilizzo: &7/ticket blacklist add <player> <reason> [days]"
+blacklist-remove-usage: "{prefix} &cUtilizzo: &7/ticket blacklist remove <player>"
+blacklist-info-usage: "{prefix} &cUtilizzo: &7/ticket blacklist info <player>"
+blacklist-info-header: "{prefix} &e&lInfo Blacklist: &f{player}"
+blacklist-info-reason: "&7➥ Motivo: &f{reason}"
+blacklist-info-by: "&7➥ Aggiunto da: &f{staff}"
+blacklist-info-date: "&7➥ Data: &f{date}"
+blacklist-info-expires: "&7➥ Scade: &f{expires}"

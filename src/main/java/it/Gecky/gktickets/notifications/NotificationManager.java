@@ -130,4 +130,24 @@ public class NotificationManager {
             }
         }
     }
+    
+    /**
+     * Notifies the player that their ticket was automatically closed
+     * @param ticket The ticket that was closed
+     */
+    public void notifyAutoClosedTicket(Ticket ticket) {
+        Player player = Bukkit.getPlayer(ticket.getPlayerUuid());
+        if (player != null && player.isOnline()) {
+            Map<String, String> placeholders = new HashMap<>();
+            placeholders.put("id", String.valueOf(ticket.getId()));
+            
+            String message = plugin.getMessageManager().formatMessage("ticket-auto-closed", placeholders);
+            player.sendMessage(message);
+            
+            // Play sound if enabled
+            if (plugin.getConfigManager().isSoundEnabled()) {
+                player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
+            }
+        }
+    }
 }

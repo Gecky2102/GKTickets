@@ -78,4 +78,21 @@ public class Ticket {
     public boolean isOpen() {
         return "OPEN".equalsIgnoreCase(status);
     }
+
+    /**
+     * Gets the timestamp of the last activity on this ticket
+     * Either the creation time or the most recent reply
+     * @return formatted timestamp of last activity
+     */
+    public String getLastActivityTime() {
+        // If there are replies, use the timestamp of the most recent one
+        if (replies != null && !replies.isEmpty()) {
+            // Sort replies by date (newest first)
+            replies.sort((r1, r2) -> r2.getCreatedAt().compareTo(r1.getCreatedAt()));
+            return replies.get(0).getCreatedAt();
+        }
+        
+        // Otherwise use the ticket creation time
+        return createdAt;
+    }
 }

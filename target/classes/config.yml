@@ -15,9 +15,21 @@ tickets:
   # Impostazioni per la chiusura automatica dei ticket
   auto-close:
     # Abilita la chiusura automatica dei ticket inattivi
-    enabled: false
+    enabled: true
     # Tempo in ore dopo il quale un ticket inattivo viene chiuso automaticamente
     time: 72
+    # Messaggio di chiusura automatica
+    message: "Ticket chiuso automaticamente dopo {hours} ore di inattività"
+    # Invia una notifica al giocatore quando il suo ticket viene chiuso automaticamente
+    notify-player: true
+    # Categorie esenti dalla chiusura automatica (lista)
+    exempt-categories: 
+      - importante
+      - urgente
+    # Ore prima della chiusura per l'invio di un avviso
+    warning-time: 48
+    # Inviare un avviso prima della chiusura automatica
+    send-warning: true
 
 # Integrazione Discord
 discord:
@@ -80,3 +92,26 @@ feedback:
   enabled: true
   # Intervallo in minuti tra i promemoria feedback (0 per disabilitare)
   reminder-interval: 30
+
+# Blacklist configuration
+blacklist:
+  enabled: true
+  # Default expiry time in days (0 = permanent)
+  default-expiry: 7
+
+# Reporting configuration
+reporting:
+  enabled: false
+  webhook-url: "" # Your Discord webhook URL for reports
+  username: "GKTickets Reporter"
+  avatar-url: "https://i.imgur.com/YourLogoHere.png"
+  # Types of reports to send
+  report-types:
+    blacklist: true
+    ticket-stats: true
+  # Hours between stats reports (0 to disable periodic stats)
+  stats-interval: 24
+  # Colors for different report types (hex color codes)
+  colors:
+    blacklist: "#FF0000" # Red
+    stats: "#00FFFF"     # Cyan

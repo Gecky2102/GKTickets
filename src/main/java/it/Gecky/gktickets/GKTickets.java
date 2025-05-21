@@ -1,12 +1,14 @@
 package it.Gecky.gktickets;
 
+import it.Gecky.gktickets.blacklist.BlacklistManager;
 import it.Gecky.gktickets.categories.CategoryManager;
 import it.Gecky.gktickets.commands.TicketCommand;
 import it.Gecky.gktickets.database.DatabaseManager;
 import it.Gecky.gktickets.integrations.DiscordIntegration;
-import it.Gecky.gktickets.listeners.JoinListener;
+import it.Gecky.gktickets.notes.StaffNoteManager;
 import it.Gecky.gktickets.notifications.NotificationManager;
-import it.Gecky.gktickets.tasks.FeedbackReminderTask;  // Add this import
+import it.Gecky.gktickets.reporting.ReportManager;
+import it.Gecky.gktickets.tasks.AutoCloseTask;
 import it.Gecky.gktickets.utils.ConfigManager;
 import it.Gecky.gktickets.utils.MessageManager;
 import it.Gecky.gktickets.utils.VersionUtils;
@@ -23,10 +25,14 @@ public final class GKTickets extends JavaPlugin {
     private MessageManager messageManager;
     private DiscordIntegration discordIntegration;
     private CategoryManager categoryManager;
+    private StaffNoteManager staffNoteManager;
+    private AutoCloseTask autoCloseTask;
     private VersionUtils versionUtils;
     private boolean placeholderAPIEnabled = false;
     private final String version = "1.0.3";
-
+    private BlacklistManager blacklistManager;
+    private ReportManager reportManager;
+    
     @Override
     public void onEnable() {
         // Creazione della cartella del plugin se non esiste
@@ -84,12 +90,25 @@ public final class GKTickets extends JavaPlugin {
             getLogger().warning("Non è stato possibile registrare l'alias 'tk'. Questo potrebbe essere normale per alcune versioni di Bukkit.");
         }
         
-        // Avvio task di promemoria feedback (ogni 30 minuti)
-        int reminderInterval = getConfig().getInt("feedback.reminder-interval", 30) * 60 * 20; // Converti da minuti a ticks
-        if (reminderInterval > 0) {
-            new FeedbackReminderTask(this).runTaskTimer(this, reminderInterval, reminderInterval);
-            getLogger().info("Task promemoria feedback avviato, intervallo: " + (reminderInterval / (60 * 20)) + " minuti");
+        // Initialize staff note manager
+        this.staffNoteManager = new StaffNoteManager(this);
+
+        // Initialize auto-close task if enabled
+        if (this.configManager.isAutoCloseEnabled()) {
+            this.autoCloseTask = new AutoCloseTask(this);
+            
+            // Run task every hour (20 ticks * 60 seconds * 60 minutes = 72000 ticks)
+            autoCloseTask.runTaskTimer(this, 72000, 72000);
+            
+            getLogger().info("Auto-close system enabled: inactive tickets will close after " + 
+                            configManager.getAutoCloseTime() + " hours");
         }
+        
+        // Initialize the blacklist manager
+        this.blacklistManager = new BlacklistManager(this);
+        
+        // Initialize the report manager
+        this.reportManager = new ReportManager(this);
         
         getLogger().info("GKTickets è stato avviato con successo!");
     }
@@ -99,6 +118,11 @@ public final class GKTickets extends JavaPlugin {
         // Chiusura della connessione al database
         if (databaseManager != null) {
             databaseManager.closeConnection();
+        }
+        
+        // Cancel auto-close task if it exists
+        if (autoCloseTask != null) {
+            autoCloseTask.cancel();
         }
         
         getLogger().info("GKTickets è stato disabilitato.");
@@ -171,6 +195,30 @@ public final class GKTickets extends JavaPlugin {
     
     public CategoryManager getCategoryManager() {
         return categoryManager;
+    }
+    
+    /**
+     * Get the staff note manager
+     * @return The staff note manager
+     */
+    public StaffNoteManager getStaffNoteManager() {
+        return staffNoteManager;
+    }
+    
+    /**
+     * Get the blacklist manager
+     * @return The blacklist manager
+     */
+    public BlacklistManager getBlacklistManager() {
+        return blacklistManager;
+    }
+    
+    /**
+     * Get the report manager
+     * @return The report manager
+     */
+    public ReportManager getReportManager() {
+        return reportManager;
     }
     
     /**

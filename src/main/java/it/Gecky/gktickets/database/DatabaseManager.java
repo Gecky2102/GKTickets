@@ -780,4 +780,61 @@ public class DatabaseManager {
             return String.format("%.1f giorni", days);
         }
     }
+    
+    /**
+     * Get the last activity time for a ticket (creation date or latest reply)
+     * @param ticketId The ticket ID
+     * @return Timestamp string of last activity
+     */
+    public String getLastActivityTime(int ticketId) {
+        String sql = "SELECT COALESCE(" +
+                    "(SELECT MAX(created_at) FROM replies WHERE ticket_id = ?), " +
+                    "(SELECT created_at FROM tickets WHERE id = ?)) AS last_activity";
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setInt(1, ticketId);
+            pstmt.setInt(2, ticketId);
+            ResultSet rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                return rs.getString("last_activity");
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().severe("Error getting last activity time: " + e.getMessage());
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Close a ticket with specified closer and reason
+     * @param ticketId The ticket ID
+     * @param closedBy Who closed the ticket
+     * @param reason Reason for closing
+     * @return true if successful
+     */
+    public boolean closeTicket(int ticketId, String closedBy, String reason) {
+        String sql = "UPDATE tickets SET status = 'CLOSED', closed_by = ?, closed_reason = ?, closed_at = ? WHERE id = ?";
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, closedBy);
+            pstmt.setString(2, reason);
+            pstmt.setString(3, LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+            pstmt.setInt(4, ticketId);
+            
+            return pstmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            plugin.getLogger().severe("Error closing ticket: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    /**
+     * Get the database connection
+     * @return The database connection
+     */
+    public Connection getConnection() {
+        return connection;
+    }
 }
