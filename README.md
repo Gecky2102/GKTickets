@@ -225,6 +225,15 @@ Automatically close inactive tickets after a configurable time period, with:
 ### Staff Notes
 Add private notes to tickets that only staff members can see, helping coordinate your support team without exposing internal communication to players.
 
+## ⭐ Star history
+
+<details>
+  <summary>Show graph</summary>
+
+  [![Star History Chart](https://api.star-history.com/svg?repos=Gecky2102/GKTickets&type=Date)](https://www.star-history.com/#Gecky2102/GKTickets&Date)
+
+</details>
+
 ## 💡 Contributing
 
 Contributions are welcome! Feel free to submit issues and pull requests.
